@@ -15,23 +15,20 @@ public class Elevator {
         return currentFloor;
     }
 
-    public void moveDown(){
+    private void moveDown(){
         currentFloor = currentFloor > minFloor ? currentFloor - 1 : currentFloor;
     }
 
-    public void moveUp(){
+    private void moveUp(){
         currentFloor = currentFloor < maxFloor ? currentFloor + 1 : currentFloor;
     }
 
     public void move(int floor){
-        if(floor > maxFloor){
-            System.out.println("Этаж задан некорректно! Вы не можете подняться выше " + maxFloor + " этажа");
+        if(floor > maxFloor || floor < minFloor){
+            System.out.println("Этаж задан некорректно! Вы не можете подняться выше " + maxFloor + " этажа и опуститься ниже " + minFloor + " этажа");
             return;
         }
-        if(floor < minFloor){
-            System.out.println("Этаж задан некорректно! Вы не можете опуститься ниже " + minFloor + " этажа");
-            return;
-        }
+
         while(currentFloor < floor){
             moveUp();
             System.out.println("Текущий этаж после перемещения - " + getCurrentFloor() );

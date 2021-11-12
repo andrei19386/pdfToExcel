@@ -11,6 +11,6 @@ public class Main {
             System.out.print("Введите номер этажа: ");
             int floor = new Scanner(System.in).nextInt();
             elevator.move(floor);
-       }
+          }
     }
 }
