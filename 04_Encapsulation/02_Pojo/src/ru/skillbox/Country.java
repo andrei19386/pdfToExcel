@@ -50,5 +50,4 @@ public class Country {
     public void setLandlocked(boolean landlocked) {
         this.landlocked = landlocked;
     }
-
 }

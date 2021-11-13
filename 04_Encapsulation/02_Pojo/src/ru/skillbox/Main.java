@@ -2,7 +2,6 @@ package ru.skillbox;
 
 public class Main {
     public static void main(String[] args) {
-
         //Создание двух объектов-экземпляров класса Country - задание 1
         Country country = new Country("Российская Федерация");
         country.setPopulation(146);
@@ -31,13 +30,12 @@ public class Main {
         System.out.println("Столица - " + countrySecond.getCapitalName());
         System.out.println("Есть ли выход к морю? - " + (countrySecond.getLandlocked() ? "Нет" : "Да"));
 
-
         //Создание объекта-экземпляра класса Book - задание 2
 
         Book book = new Book("Практический курс Трансерфинга за 78 дней");
         book.setAuthor("Зеланд");
         book.setNumberOfPages(432);
-        book.setPrice(400);
+        book.setPrice(250);
 
         //Проверяем сеттеры-геттеры к заданию 2
         System.out.println();
@@ -46,7 +44,5 @@ public class Main {
         System.out.println("Автор - " + book.getAuthor());
         System.out.println("Количество страниц - " + book.getNumberOfPages());
         System.out.println("Цена книги - " + book.getPrice() + " р.");
-
-
     }
 }
