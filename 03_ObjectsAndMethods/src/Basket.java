@@ -1,10 +1,46 @@
 public class Basket {
 
     private static int count = 0;
-    private String items;// = "";
+    private String items;
     private int totalPrice = 0;
     private int limit;
     private double totalWeight = 0;
+
+    private static int allTotalPrice = 0;
+    private static int allGoods = 0;
+
+    public static int getAllTotalPrice() {
+        return allTotalPrice;
+    }
+
+    public static int getAllGoods() {
+        return allGoods;
+    }
+
+    private static void increaseAllTotalPrice(int totalPrice) {
+        Basket.allTotalPrice = Basket.allTotalPrice + totalPrice;
+    }
+
+    private static void increaseAllGoods (int goods) {
+        Basket.allGoods = Basket.allGoods + goods;
+    }
+
+    public static double averagePriceGoods() {
+        if(allGoods != 0){
+            return (1.0 * allTotalPrice) / allGoods;
+        }
+        //System.out.println("Не могу рассчитать среднюю стоимость товара, пока ни в одной корзине нет ни одного товара!");
+        return 0;
+    }
+
+
+    public static double averagePriceBasket() {
+        if(count != 0){
+            return (1.0 * allTotalPrice) / count;
+        }
+        //System.out.println("Не могу рассчитать среднюю стоимость товара, пока не создана ни одна корзина!");
+        return 0;
+    }
 
     public Basket() {
         increaseCount(1);
@@ -21,6 +57,8 @@ public class Basket {
         this();
         this.items = this.items + items;
         this.totalPrice = totalPrice;
+        increaseAllTotalPrice(totalPrice);
+        increaseAllGoods(1);
     }
 
     public Basket(String items, int totalPrice, double totalWeight) {
@@ -32,7 +70,7 @@ public class Basket {
         return count;
     }
 
-    public static void increaseCount(int count) {
+    private static void increaseCount(int count) {
         Basket.count = Basket.count + count;
     }
 
@@ -62,6 +100,8 @@ public class Basket {
         items = items + "\n" + name + " - " +
                 count + " шт. - " + price;
         totalPrice = totalPrice + count * price;
+        increaseAllTotalPrice(count * price);
+        increaseAllGoods(count);
         totalWeight = totalWeight + count * weight;
 
     }

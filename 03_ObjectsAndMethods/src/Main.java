@@ -7,12 +7,27 @@ public class Main {
         basket.add("Milk", 40, 3,120);
         basket.add("Sugar",30,1,15);
         basket.add("Water",10,1);
-        basket.print("Milk");
+        basket.print("____");
         System.out.println("Общий вес покупок - " + basket.getTotalWeight() + " г");
-        System.out.println("\n\n\n\n\n\n");
 
+        Basket basketSecond = new Basket();
+        basketSecond.add("Milk", 40, 7,120);
+        basketSecond.add("Sugar",30,5,15);
+        basketSecond.add("Butter",50,2);
+
+        System.out.println();
+        basketSecond.print("____");
+
+        System.out.println("Общий вес покупок - " + basketSecond.getTotalWeight() + " г");
+
+        System.out.println();
+        System.out.println("Общая стоимость товаров по корзинам - " + Basket.getAllTotalPrice() + " р.");
+        System.out.println("Общее количество товаров по корзинам - " + Basket.getAllGoods() + " р.");
+        System.out.println("Общее количество корзин - " + Basket.getCount());
+        System.out.println("Средняя цена товара во всех корзинах - " + Basket.averagePriceGoods() + " р.");
+        System.out.println("Средняя цена одной корзины - " + Basket.averagePriceBasket() + " р.");
+/*
         System.out.println("##########___HOMEWORK2___##########");
-
 
         Arithmetic arithmetic = new Arithmetic(5, 7); //Создание объекта класса
         System.out.println("Сумма двух чисел равна " + arithmetic.sum());
@@ -21,8 +36,6 @@ public class Main {
         System.out.println("Минимальное из двух чисел равно " + arithmetic.minValue());
         System.out.println("\n\n\n\n\n\n");
         System.out.println("##########___HOMEWORK3___##########");
-
-
 
         Printer printer = new Printer();
 
@@ -35,6 +48,6 @@ public class Main {
             printer.print();
             System.out.println("Всего страниц напечатано " + printer.getPrintedPagesCount() + "\n");
         }
-
+*/
     }
 }
