@@ -1,29 +1,29 @@
 public class ArithmeticCalculator {
-    private final int variable_first;
-    private final int variable_second;
+    private final int variableFirst;
+    private final int variableSecond;
 
-    public ArithmeticCalculator(int variable_first, int variable_second) {
-        this.variable_first = variable_first;
-        this.variable_second = variable_second;
+    public ArithmeticCalculator(int variableFirst, int variableSecond) {
+        this.variableFirst = variableFirst;
+        this.variableSecond = variableSecond;
     }
 
-    public int getVariable_first() {
-        return variable_first;
+    public int getVariableFirst() {
+        return variableFirst;
     }
 
-    public int getVariable_second() {
-        return variable_second;
+    public int getVariableSecond() {
+        return variableSecond;
     }
 
     public double calculate(Operation operation) {
         if(operation == Operation.ADD ) {
-            return variable_first + variable_second;
+            return variableFirst + variableSecond;
         }
         if(operation == Operation.SUBTRACT ) {
-            return variable_first - variable_second;
+            return variableFirst - variableSecond;
         }
         if(operation == Operation.MULTIPLY ) {
-            return variable_first * variable_second;
+            return variableFirst * variableSecond;
         }
         return  0;
     }
