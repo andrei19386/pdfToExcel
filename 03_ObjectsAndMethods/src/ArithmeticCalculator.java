@@ -15,7 +15,7 @@ public class ArithmeticCalculator {
         return variableSecond;
     }
 
-    public double calculate(Operation operation) {
+    public int calculate(Operation operation) {
         if(operation == Operation.ADD ) {
             return variableFirst + variableSecond;
         }
