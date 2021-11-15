@@ -1,7 +1,7 @@
 public class Main {
 
     public static void main(String[] args) {
-
+    /*
         System.out.println("##########___HOMEWORK1___ ##########");
         Basket basket = new Basket();
         basket.add("Milk", 40, 3,120);
@@ -26,6 +26,17 @@ public class Main {
         System.out.println("Общее количество корзин - " + Basket.getCount());
         System.out.println("Средняя цена товара во всех корзинах - " + Basket.averagePriceGoods() + " р.");
         System.out.println("Средняя цена одной корзины - " + Basket.averagePriceBasket() + " р.");
+         */
+        
+        System.out.println("##########___HOMEWORK2___ ##########");
+        ArithmeticCalculator arithmeticCalculator = new ArithmeticCalculator(43,10);
+        System.out.println("Первое число в конструкторе калькулятора равно " + arithmeticCalculator.getVariableFirst());
+        System.out.println("Второе число в конструкторе калькулятора равно " + arithmeticCalculator.getVariableSecond());
+        System.out.println("Сумма чисел равна " + arithmeticCalculator.calculate(Operation.ADD));
+        System.out.println("Разность чисел равна " + arithmeticCalculator.calculate(Operation.SUBTRACT));
+        System.out.println("Произведение чисел равно " + arithmeticCalculator.calculate(Operation.MULTIPLY));
+
+
 /*
         System.out.println("##########___HOMEWORK2___##########");
 
