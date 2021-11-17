@@ -1,18 +1,18 @@
 package ru.skillbox;
 
-public class InformationStorage {
-    private final InformationStorageType informationStorageType;
+public class StorageInformation {
+    private final StorageInformationType storageInformationType;
     private final int memoryVolume;
     private final int weight;
 
-    public InformationStorage(InformationStorageType informationStorageType, int memoryVolume, int weight) {
-        this.informationStorageType = informationStorageType;
+    public StorageInformation(StorageInformationType storageInformationType, int memoryVolume, int weight) {
+        this.storageInformationType = storageInformationType;
         this.memoryVolume = memoryVolume;
         this.weight = weight;
     }
 
-    public InformationStorageType getInformationStorageType() {
-        return informationStorageType;
+    public StorageInformationType getStorageInformationType() {
+        return storageInformationType;
     }
 
     public int getMemoryVolume() {
@@ -25,7 +25,7 @@ public class InformationStorage {
 
     public String toString(){
         return  " Информация о накопителе информации: \n" +
-                "    Тип носителя: " + getInformationStorageType() + "\n" +
+                "    Тип носителя: " + getStorageInformationType() + "\n" +
                 "    Объем памяти: " + getMemoryVolume() + " Гбайт\n" +
                 "    Вес: " + getWeight() + " г\n";
     }

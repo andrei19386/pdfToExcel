@@ -1,6 +1,6 @@
 package ru.skillbox;
 
-public class ProcessorClass {
+public class Processor {
     private final int frequency;
     private final int numberOfThreads;
     private final String manufacturer;
@@ -22,13 +22,12 @@ public class ProcessorClass {
         return weight;
     }
 
-    public ProcessorClass(int frequency, int numberOfThreads, String manufacturer, int weight) {
+    public Processor(int frequency, int numberOfThreads, String manufacturer, int weight) {
         this.frequency = frequency;
         this.numberOfThreads = numberOfThreads;
         this.manufacturer = manufacturer;
         this.weight = weight;
     }
-
 
     public String toString() {
         return " Информация о процессоре:\n" +

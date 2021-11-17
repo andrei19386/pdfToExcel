@@ -1,5 +1,5 @@
 package ru.skillbox;
 
-public enum InformationStorageType {
+public enum StorageInformationType {
     HDD, SDD
 }
