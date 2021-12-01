@@ -1,21 +1,24 @@
 import java.util.Scanner;
 
 public class Main {
-    public static final String WRONG_EMAIL_ANSWER = "Неверный формат email";
-    
-    /* TODO:
-        Пример вывода списка Email, после ввода команды LIST в консоль:
-        test@test.com
-        hello@mail.ru
-        - каждый адрес с новой строки
-        - список должен быть отсортирован по алфавиту
-        - email в разных регистрах считается одинаковыми
-           hello@skillbox.ru == HeLLO@SKILLbox.RU
-        - вывод на печать должен быть в нижнем регистре
-           hello@skillbox.ru
-        Пример вывода сообщения об ошибке при неверном формате Email:
-        "Неверный формат email"
-    */
+
+    private static EmailList emailList = new EmailList();
+
+    public static void executionOfAction(ActionType action, String string) {
+        String data;
+        switch (action) {
+            case ADD:
+                data = string.replaceFirst("[A][D][D] ", "");
+                emailList.add(data);
+                break;
+            case LIST:
+                emailList.getSortedEmails();
+                break;
+            default:
+                System.out.println("I don't know this command!");
+                break;
+        }
+    }
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -25,9 +28,12 @@ public class Main {
             if (input.equals("0")) {
                 break;
             }
-            
-            //TODO: write code here
-            
-        }
+
+            ActionType action = input.matches("[A][D][D] .{1,}") ? ActionType.ADD : ActionType.NOTHING_TODO;
+            action = input.matches("[L][I][S][T]") ? ActionType.LIST : action;
+            executionOfAction(action, input);
+            }
+
+        System.out.println();
     }
 }
