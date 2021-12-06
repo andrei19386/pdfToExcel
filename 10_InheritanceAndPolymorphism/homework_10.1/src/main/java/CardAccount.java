@@ -1,4 +1,17 @@
 public class CardAccount extends BankAccount {
-    // не забывайте, обращаться к методам и конструкторам родителя
-    // необходимо используя super, например, super.put(10D);
+    public static final int COMMISSION_PERCENT = 1;
+
+    public CardAccount() {
+        super();
+    }
+
+
+    public CardAccount(double amount) {
+        super(amount);
+    }
+
+    public boolean take(double amountToTake) {
+        double amountToTakeWithCommission = amountToTake + (double) COMMISSION_PERCENT / 100 * amountToTake;
+        return super.take(amountToTakeWithCommission);
+    }
 }
