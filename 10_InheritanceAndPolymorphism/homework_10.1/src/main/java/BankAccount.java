@@ -10,11 +10,11 @@ public class BankAccount {
     this.amount = amount;
   }
 
-  public double getAmount() {
+  protected double getAmount() {
     return amount;
   }
 
-  public void put(double amountToPut) {
+  protected void put(double amountToPut) {
     if (Double.compare(amountToPut,0.0) < 0 ) {
       System.out.println("Вы пытаетесь положить на счет отрицательную сумму денег!");
       return;
@@ -24,7 +24,7 @@ public class BankAccount {
 
 
 
-  public boolean take(double amountToTake) {
+  protected boolean take(double amountToTake) {
     if (Double.compare(amountToTake,amount) > 0) {
       System.out.println("Недостаточно средств на счете!");
       return false;
@@ -35,7 +35,7 @@ public class BankAccount {
   }
 
 
-  public boolean send(BankAccount receiver, double amount) {
+  protected boolean send(BankAccount receiver, double amount) {
     boolean isSuccess = this.take(amount);
     if(isSuccess) {
       receiver.put(amount);

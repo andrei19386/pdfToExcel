@@ -10,7 +10,7 @@ public class CardAccount extends BankAccount {
         super(amount);
     }
 
-    public boolean take(double amountToTake) {
+    protected boolean take(double amountToTake) {
         double amountToTakeWithCommission = amountToTake + (double) COMMISSION_PERCENT / 100 * amountToTake;
         return super.take(amountToTakeWithCommission);
     }
