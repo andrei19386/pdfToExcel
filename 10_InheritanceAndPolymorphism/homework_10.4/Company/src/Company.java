@@ -4,32 +4,30 @@ import java.util.TreeSet;
 
 public class Company {
 
-    private ArrayList<Worker> workers = new ArrayList<>();
+    private List<Worker> workers = new ArrayList<>();
     private int income;
     private int compareMode;
 
-    protected void hire(Worker worker) {
+    public void hire(Worker worker) {
         workers.add(worker);
         worker.setCompany(this);
         this.income += worker.getIncomeForCompany();
     }
 
-    protected int getCompareMode() {
+    public int getCompareMode() {
         return compareMode;
     }
 
-    protected void hireAll(ArrayList<Worker> workersList){
-        for(Worker item : workersList) {
-            hire(item);
-        }
+    public void hireAll(ArrayList<Worker> workersList){
+            workersList.addAll(workersList);
     }
 
-    protected void fire(int index){
+    public void fire(int index){
         this.income -= workers.get(index).getIncomeForCompany();
         workers.remove(index);
     }
 
-    protected int getIncome(){
+    public int getIncome(){
         return income;
     }
 
@@ -51,23 +49,24 @@ public class Company {
     }
 
 
-    protected List<Worker> getTopSalaryStaff(int count) {
+    public List<Worker> getTopSalaryStaff(int count) {
 
         compareMode = 1;
-        TreeSet<Worker> treeSet = new TreeSet<>();
-        treeSet.addAll(workers);
-
-        return getListSalaryStaff(count, treeSet);
+        return getWorkers(count);
     }
 
-    protected List<Worker> getLowestSalaryStaff(int count) {
+    public List<Worker> getLowestSalaryStaff(int count) {
         compareMode = -1;
+        return getWorkers(count);
+    }
+
+    private List<Worker> getWorkers(int count) {
         TreeSet<Worker> treeSet = new TreeSet<>();
         treeSet.addAll(workers);
         return getListSalaryStaff(count, treeSet);
     }
 
-    protected ArrayList<Worker> getWorkers() {
+    public List<Worker> getWorkers() {
         return workers;
     }
 }

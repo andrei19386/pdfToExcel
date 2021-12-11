@@ -4,27 +4,27 @@ public abstract class Worker implements Employee, Comparable<Worker>
     private Company company;
     private int incomeForCompany;
 
-    protected void setIncomeForCompany(int incomeForCompany) {
+    public void setIncomeForCompany(int incomeForCompany) {
         this.incomeForCompany = incomeForCompany;
     }
 
-    protected int getIncomeForCompany() {
+    public int getIncomeForCompany() {
         return incomeForCompany;
     }
 
-    protected Company getCompany() {
+    public Company getCompany() {
         return company;
     }
 
-    protected void setCompany(Company company) {
+    public void setCompany(Company company) {
         this.company = company;
     }
 
-    protected int getFixedIncome() {
+    public int getFixedIncome() {
         return fixedIncome;
     }
 
-    protected void setFixedIncome(int fixedIncome) {
+    public void setFixedIncome(int fixedIncome) {
         this.fixedIncome = fixedIncome;
     }
 
