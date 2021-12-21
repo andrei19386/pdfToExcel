@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="WARN">
+    <appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+
+        </Console>
+
+        <File name="Search" fileName="logs/search.log">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-1level %logger{36} - %msg%n"/>
+        </File>
+        <File name="Input_error" fileName="logs/input_errors.log">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
+        <File name="Exception" fileName="logs/exceptions.log">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
+    </appenders>
+
+    <loggers>
+        <root level="info">
+            <appender-ref ref="Search" level="info"/>
+        </root>
+        <Logger name="Error" level="error" additivity="false">
+            <appender-ref ref="Input_error" level="error"/>
+        </Logger>
+        <Logger name="Exception" level="fatal" additivity="false">
+            <appender-ref ref="Exception" level="fatal"/>
+        </Logger>
+
+    </loggers>
+</configuration>
