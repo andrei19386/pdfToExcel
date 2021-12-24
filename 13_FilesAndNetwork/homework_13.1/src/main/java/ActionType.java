@@ -1,0 +1,3 @@
+public enum ActionType {
+    PRINT_DIRECTORIES,PRINT_FILES,CALCULATE_SIZE
+}

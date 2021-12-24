@@ -9,6 +9,10 @@ public class Main {
             try {
                 long size = FileUtils.calculateFolderSize(path);
                 System.out.println("Размер папки " + path + " составляет " + FileUtils.readableSize(size));
+                System.out.println("Список директорий:");
+                FileUtils.printListOfDirectories(path);
+                System.out.println("Список файлов:");
+                FileUtils.printListOfFiles(path);
 
             } catch (Exception exception) {
                 exception.printStackTrace();
