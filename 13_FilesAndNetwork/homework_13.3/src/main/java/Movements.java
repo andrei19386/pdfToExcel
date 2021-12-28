@@ -56,7 +56,7 @@ public class Movements {
         adding(fragments);
     }
 
-    private void adding(ArrayList<String> fragments) throws IOException {
+    private void adding(List<String> fragments) throws IOException {
         if (fragments.size() != 8) {
             throw new IOException("Wrong number of arguments!");
         } else {
