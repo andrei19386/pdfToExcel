@@ -25,13 +25,13 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            //Document doc = getJsoupDocument("data/htmlcode.html");
+            //Document doc = getJsoupDocument("data/htmlcode.html"); Для отладки
 
-            Document doc = Jsoup.connect(URL).maxBodySize(0).get();
+             Document doc = Jsoup.connect(URL).maxBodySize(0).get();
             List<LineData> lines = getLines(doc);
-            List<Station> stationList = getStationsList(getStationIndexes(doc));
+            Set<Station> stationSet = getStationsSet(getStationIndexes(doc));
 
-            parseAndWriteJSONFile(doc, lines, stationList);
+            parseAndWriteJSONFile(doc, lines, stationSet);
             printInfoFromJson();
 
         } catch (Exception ex) {
@@ -83,10 +83,33 @@ public class Main {
         return count;
     }
 
-    private static void parseAndWriteJSONFile(Document doc, List<LineData> lines, List<Station> stationList)
+    private static void parseAndWriteJSONFile(Document doc, List<LineData> lines, Set<Station> stationSet)
             throws IOException, ParseException {
         JSONObject lineJSON = new JSONObject();
         JSONArray linesJSONArray = new JSONArray();
+        fullJSONLines(doc, lines, stationSet, lineJSON, linesJSONArray);
+
+        bugCorrection(stationSet);
+        Map<Integer, Station> stationMap = generateStationMap(stationSet);
+
+        JSONObject objJSONObject = new JSONObject();
+        Set<String> connectionsSet = getConnectionsSet(doc); // Получаем список переходов
+
+        Set<String> reducedConnectionSet = setReduce(connectionsSet, stationSet);//Объединяем переходы:
+        // Например, Переходы с Чеховской на Пушкинскую и Тверской на Пушкинскую можно объединить
+        // в переход из 3 станций
+
+        JSONArray connections = new JSONArray();
+        fullJSONStationsOnConnection(stationMap, reducedConnectionSet, connections);
+
+        objJSONObject.put("stations",lineJSON);
+        objJSONObject.put("connections",connections);
+        objJSONObject.put("lines",linesJSONArray);
+
+        writeFormattedFile(objJSONObject);
+    }
+
+    private static void fullJSONLines(Document doc, List<LineData> lines, Set<Station> stationSet, JSONObject lineJSON, JSONArray linesJSONArray) throws IOException {
         for(LineData line : lines) {
             JSONObject lineJSONObject = new JSONObject();
             lineJSONObject.put("number",line.getDataNumber());
@@ -96,28 +119,22 @@ public class Main {
             List<String> stations = getStations(doc,line.getDataNumber());// Получаем список станций
             // по идентификатору линии
             stations.forEach(s -> {
-                setLineIdOfStation(s,line.getDataNumber(), stationList);
+                setLineIdOfStation(s,line.getDataNumber(), stationSet);
             });
             JSONArray stationsJSON = new JSONArray();
             stationsJSON.addAll(stations);
             lineJSON.put(line.getDataNumber(),stationsJSON);
         }
+    }
 
-        bugCorrection(stationList);
-
-        JSONObject objJSONObject = new JSONObject();
-        Set<String> connectionsSet = getConnectionsSet(doc); // Получаем список переходов
-        Set<String> reducedConnectionSet = setReduce(connectionsSet, stationList.size());//Объединяем переходы:
-        // Например, Переходы с Чеховской на Пушкинскую и Тверской на Пушкинскую можно объединить
-        // в переход из 3 станций
-
-        JSONArray connections = new JSONArray();
+    private static void fullJSONStationsOnConnection(Map<Integer, Station> stationMap,
+                                                     Set<String> reducedConnectionSet, JSONArray connections) {
         for(String connection : reducedConnectionSet){
             String[] words = connection.split("[ ]");
             JSONArray stationsOnConnection = new JSONArray();
             for(String word : words) {
                 int key = Integer.parseInt(word);
-                Station stationByKey = getStationByIndex(key, stationList);
+                Station stationByKey = getStationByIndex(key, stationMap);
                 JSONObject stationOfConnection = new JSONObject();
                 stationOfConnection.put("line",stationByKey.getLineId());
                 stationOfConnection.put("station",stationByKey.getName());
@@ -125,20 +142,22 @@ public class Main {
             }
             connections.add(stationsOnConnection);
         }
-
-        objJSONObject.put("stations",lineJSON);
-        objJSONObject.put("connections",connections);
-        objJSONObject.put("lines",linesJSONArray);
-
-        writeFormattedFile(objJSONObject);
     }
 
-    private static void bugCorrection(List<Station> stationList) {
+    private static Map<Integer,Station> generateStationMap(Set<Station> stationSet) {
+        Map<Integer,Station> stationMap = new HashMap<>();
+
+        stationSet.forEach(s ->  stationMap.put(s.getStationIndex(),s)   );
+
+        return stationMap;
+    }
+
+    private static void bugCorrection(Set<Station> stationSet) {
         Station stationMissed = new Station("Царицыно");//Баг станции Царицыно
         // - в списке индексов станций она не найдена, поскольку отсутствует в списках по атрибуту text
         stationMissed.setLineId("D2");
         stationMissed.setStationIndex(315);
-        stationList.add(stationMissed);
+        stationSet.add(stationMissed);
     }
 
     private static void writeFormattedFile(JSONObject objJSONObject) throws ParseException, IOException {
@@ -195,7 +214,7 @@ public class Main {
     }
 
     private static Map<String,String> getStationIndexes(Document doc){//Генерируем Map из идентификатора/ов
-        // станции и ее названия (для случая сложных нахваний, на нескольких строках)
+        // станции и ее названия (для случая сложных названий, на нескольких строках)
         Map<String,String> stationIndexes = new HashMap<>();
         Elements elements = doc.select("text");
         for(Element element : elements) {
@@ -217,9 +236,9 @@ public class Main {
         return stationIndexes;
     }
 
-    private static List<Station> getStationsList(Map<String,String> stationIndexes) {//Генерируем список станций
+    private static Set<Station> getStationsSet(Map<String,String> stationIndexes) {//Генерируем список станций
         // со всеми идентификаторами станций, это нужно для генерации переходов
-        List<Station> stationList = new ArrayList<>();
+        Set<Station> stationSet = new HashSet<>();
         for (Map.Entry<String, String> entry : stationIndexes.entrySet()){
             String key = entry.getKey();
             String value = entry.getValue();
@@ -228,14 +247,14 @@ public class Main {
                 Station station = new Station(value);
                 if(words[i].substring(1).matches("[0-9]+")) {
                     station.setStationIndex(Integer.parseInt(words[i].substring(1)));
-                    stationList.add(station);
+                    stationSet.add(station);
                 }
             }
         }
-        return stationList;
+        return stationSet;
     }
 
-    private static void setLineIdOfStation(String nameOfStation, String indexOfLine, List<Station> stationList) {
+    private static void setLineIdOfStation(String nameOfStation, String indexOfLine, Set<Station> stationSet) {
         String treatmentString;
         String treatmentNameOfStation = nameOfStation.replace("ё", "е");//Различие написаний
         // станций с буквой ё
@@ -244,13 +263,12 @@ public class Main {
             treatmentNameOfStation = "Библиотека им. Ленина";
         }
 
-        for (int i = 0; i < stationList.size(); i++) {
-            treatmentString = stationList.get(i).getName().replace("ё", "е");
-
+        for (int i = 0; i < stationSet.size(); i++) {
+            treatmentString = stationSet.stream().toList().get(i).getName().replace("ё", "е");
 
             if (treatmentString.toLowerCase().trim().compareTo(treatmentNameOfStation.toLowerCase().trim()) == 0 &&
-                    stationList.get(i).getLineId() == null) {
-                stationList.get(i).setLineId(indexOfLine);
+                    stationSet.stream().toList().get(i).getLineId() == null) {
+                stationSet.stream().toList().get(i).setLineId(indexOfLine);
                 break;
             }
         }
@@ -265,13 +283,9 @@ public class Main {
         return  connectionsList;
     }
 
-    private static Station getStationByIndex(int stationIndex, List<Station> stationList){
-        for(Station station : stationList) {
-            if(station.getStationIndex() == stationIndex) {
-                return station;
-            }
-        }
-        return new Station("Invalid Station Name!");
+    private static Station getStationByIndex(int stationIndex, Map<Integer,Station> stationMap){
+
+        return stationMap.get(stationIndex);
     }
 
     private static Set<String> getConnectionsByCss(Document doc, Set<String> connectionsList,String css) {
@@ -293,83 +307,70 @@ public class Main {
         return connectionsList;
     }
 
-    private static Set<String> setReduce(Set<String> connectionList, int sizeOfStationList) {
+    private static Set<String> setReduce(Set<String> connectionSet, Set<Station> stationSet) {
         Set<String> reducedSet = new HashSet<>();
-        boolean[][] incidenceMatrix = new boolean[sizeOfStationList + 3][connectionList.size()];
-        List<String> listConnections = connectionList.stream().toList();
-        getIncidenceMatrix(incidenceMatrix, listConnections);
+        List<Connection> connectionList = new ArrayList<>();
+        connectionSet.forEach(s -> {
+            String[] words = s.split("[ ]");
+            int first = Integer.parseInt(words[0]);
+            int second = Integer.parseInt(words[1]);
+            connectionList.add(new Connection(first,second));
+            connectionList.add(new Connection(second,first));
+        });
 
-        getRedusedSet(sizeOfStationList, reducedSet, incidenceMatrix, listConnections);
-        return reducedSet;
+
+        fullReducedSet(stationSet, reducedSet, connectionList);
+        return  reducedSet;
     }
 
-    private static void getRedusedSet(int sizeOfStationList, Set<String> reducedSet, boolean[][] incidenceMatrix,
-                                      List<String> listConnections) {
-        for(int j = 0; j < listConnections.size(); j++) {
-            String element = "";
-            boolean isFirst = true;
-            for(int i = 0; i < sizeOfStationList + 3; i++) {
-                if(incidenceMatrix[i][j]){
-                    if(isFirst) {
-                        element = Integer.toString(i+1);
-                        isFirst = false;
-                    } else {
-                        element = element + " " + Integer.toString(i + 1);
-                    }
-                }
+    private static void fullReducedSet(Set<Station> stationSet, Set<String> reducedSet,
+                                       List<Connection> connectionList) {
+        Set<Integer> connections = new HashSet<>();
+        for(Station station : stationSet) {
+            String s = "";
+            if(!connections.contains(station.getStationIndex())) {
+                Set<Integer> temporarySet = findAllConnections(station.getStationIndex(), connectionList);
+                connections.addAll(temporarySet);
+                s = getString(s, temporarySet);
             }
-            if(element != "") {
-                reducedSet.add(element);
+            if(s != "") {
+                reducedSet.add(s);
             }
         }
     }
 
-    private static void getIncidenceMatrix(boolean[][] incidenceMatrix, List<String> listConnections) {
-        int keyFirst;
-        int keySecond;
-
-        Set<Integer> keySet = new HashSet<>();// Содержит все обработанные идентификаторы станций
-        // за весь период выполнения функции, нужно для избежания дублирования переходов
-        int j = 0;
-        Set<Integer> keyNewSet = new HashSet<>(); //Предназначен для хранения текущего множества
-        // связанных переходами станций
-        for(String connection : listConnections){
-            keyFirst = Integer.parseInt(connection.split("[ ]")[0]);
-            keySecond = Integer.parseInt(connection.split("[ ]")[1]);
-
-            if(keySet.contains(keyFirst)||keySet.contains(keySecond)){ // Если переходы уже обрабатывались,
-                // пропускаем дальнейшие действия
-                continue;
-            }
-            findKeys(listConnections, keyFirst, keySecond, keySet, keyNewSet);
-
-            for(int key: keyNewSet){
-                incidenceMatrix[key-1][j] = true;
-            }
-            j++;
-        }
-    }
-
-    private static void findKeys(List<String> listConnections, int keyFirst, int keySecond, Set<Integer> keySet,
-                                 Set<Integer> keyNewSet) {
-        keyNewSet.clear();
-        keySet.add(keyFirst);
-        keySet.add(keySecond);
-        keyNewSet.add(keyFirst);
-        keyNewSet.add(keySecond);
-        for(int i = 0; i < listConnections.size() / 2; i++) { //Если внутренний цикл не повторять,
-            //некоторые станции из переходов могут быть исключены, в связи с тем что поиск осуществляется
-            // в направлениии слева направо
-            for (String newConnection : listConnections) {
-                int keyFirstNew = Integer.parseInt(newConnection.split("[ ]")[0]);
-                int keySecondNew = Integer.parseInt(newConnection.split("[ ]")[1]);
-                if (keyNewSet.contains(keyFirstNew) || keyNewSet.contains(keySecondNew)) {
-                    keyNewSet.add(keyFirstNew);
-                    keyNewSet.add(keySecondNew);
-                    keySet.add(keyFirstNew);
-                    keySet.add(keySecondNew);
-                }
+    private static String getString(String s, Set<Integer> temporarySet) {
+        boolean isFirst = true;
+        for(int i : temporarySet) {
+            if(isFirst){
+                s = Integer.toString(i);
+                isFirst = false;
+            } else {
+                s = s + " " + i;
             }
         }
+        return s;
     }
+
+    private static Set<Integer> findAllConnections(int stationIndex, List<Connection> connectionList){
+        List<Connection> foundConnections = new ArrayList<>();
+        connectionList.forEach(c -> {
+            if(c.getFirst() == stationIndex){
+                foundConnections.add(c);
+            }
+        });
+
+        Set<Integer> foundRecursiveConnections = new HashSet<>();
+        List<Connection> newConnectionsList = new ArrayList<>(connectionList);
+        foundConnections.forEach(c -> {
+            newConnectionsList.remove(c);
+            foundRecursiveConnections.add(c.getFirst());
+            foundRecursiveConnections.add(c.getSecond());
+            if(!newConnectionsList.isEmpty()) {
+                foundRecursiveConnections.addAll(findAllConnections(c.getSecond(), newConnectionsList) ) ;
+            }
+        });
+        return foundRecursiveConnections;
+    }
+
 }
