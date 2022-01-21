@@ -16,6 +16,10 @@ public class KeyPurchase implements Serializable {
         this.courseName = courseName;
     }
 
+    public KeyPurchase(){
+
+    }
+
     public String getStudentName() {
         return studentName;
     }

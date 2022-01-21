@@ -13,7 +13,7 @@ public class Student {
 
     private int age;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id")
     List<Subscription> subscriptions;
 

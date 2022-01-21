@@ -14,7 +14,7 @@ public class Teacher {
 
     private int age;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "teacher_id")
     List<Course> courses;
 

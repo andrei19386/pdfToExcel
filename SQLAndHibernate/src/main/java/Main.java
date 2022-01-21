@@ -6,6 +6,10 @@ import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import java.util.Date;
 import java.util.List;
 
 
@@ -23,7 +27,7 @@ public class Main {
         studentList.forEach(s -> System.out.println(s.getName()));
         Transaction transaction = session.beginTransaction();
 
-        transaction.commit();*/
+        transaction.commit();
 
         PurchaseListRecord purchaseListRecord = session.get(PurchaseListRecord.class,
                 new KeyPurchase("Круминьш Виталий", "Управление продуктом"));
@@ -34,8 +38,29 @@ public class Main {
         subscriptionList.forEach(s->{
            System.out.println(s.getCourse().getName());
         });
+        */
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<PurchaseListRecord> query = builder.createQuery(PurchaseListRecord.class);
+        Root<PurchaseListRecord> root = query.from(PurchaseListRecord.class);
+        query.select(root);
+        List<PurchaseListRecord> purchaseListRecordList = session.createQuery(query).getResultList();
 
 
+        Transaction transaction = session.beginTransaction();
+
+        for(PurchaseListRecord record: purchaseListRecordList) {
+            String hqlStudent = "From " + Student.class.getSimpleName() + " Where name = '" + record.getStudentName() +"'";
+            String hqlCourse = "From " + Course.class.getSimpleName() + " Where name = '" + record.getCourseName() + "'";
+            Student studentRec = (Student) session.createQuery(hqlStudent).getSingleResult();
+            Course courseRec = (Course) session.createQuery(hqlCourse).getSingleResult();
+
+            LinkedPurchaseListRecord linkedPurchaseListRecord = new LinkedPurchaseListRecord();
+            linkedPurchaseListRecord.setStudentId(studentRec.getId());
+            linkedPurchaseListRecord.setCourseId(courseRec.getId());
+            session.save(linkedPurchaseListRecord);
+        }
+
+        transaction.commit();
         sessionFactory.close();
     }
 }
