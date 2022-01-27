@@ -1,6 +1,6 @@
 public class Account {
 
-    private long money; //Денег на счету
+    private volatile long money; //Денег на счету
     private final String accNumber; // Номер счета
     private volatile boolean isBlocked; // Заблокирован ли счет?
     private volatile boolean isTemporarilyBlocked; // Вспомогательная переменная для временной блокировки счета
