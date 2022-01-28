@@ -1,4 +1,4 @@
-public class Account {
+public class Account implements Comparable<Account>{
 
     private volatile long money; //Денег на счету
     private final String accNumber; // Номер счета
@@ -12,16 +12,16 @@ public class Account {
         this.isTemporarilyBlocked = false;
     }
 
+    public String getAccNumber() {
+        return accNumber;
+    }
+
     public long getMoney() {
         return money;
     }
 
     public void setMoney(long money) {
         this.money = money;
-    }
-
-    public String getAccNumber() {
-        return accNumber;
     }
 
     public boolean getIsBlocked() {
@@ -38,5 +38,10 @@ public class Account {
 
     public void setTemporarilyBlocked(boolean temporarilyBlocked) {
         isTemporarilyBlocked = temporarilyBlocked;
+    }
+
+    @Override
+    public int compareTo(Account o) {
+        return this.getAccNumber().compareTo(o.getAccNumber());
     }
 }
