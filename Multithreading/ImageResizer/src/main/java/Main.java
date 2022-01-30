@@ -18,14 +18,13 @@ public class Main {
         int numberOfThreads = Runtime.getRuntime().availableProcessors();
         int arrayLength = files.length / numberOfThreads;
         int numberOfCopiedOnFirstThreads = arrayLength*(numberOfThreads - 1);
-        List<ImageResizer> imageResizerList = new ArrayList<>();
+
 
         for(int i = 0; i < numberOfThreads - 1; i++) {
             File[] partFiles = new File[arrayLength];
             System.arraycopy(files,arrayLength*i, partFiles,0,arrayLength);
             ImageResizer imageResizer = new ImageResizer(partFiles,dstFolder,newWidth,start);
-            imageResizerList.add(imageResizer);
-            new Thread(imageResizerList.get(i)).start();
+            new Thread(imageResizer).start();
         }
 
         File[] leftFiles = new File[files.length - numberOfCopiedOnFirstThreads];
