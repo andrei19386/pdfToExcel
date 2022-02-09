@@ -1,9 +1,10 @@
 const put_ = function(id){
                 var data = $('#case-edit-form form').serialize();
-                $('#case-edit-form').css('display', 'none');
+                 $('#case-edit-form').css('display', 'none');
                 $.ajax({
-                            method: "PUT",
+                            method: 'PUT',
                             url: '/cases/' + id,
+                            async: false,
                             data: data,
                             success: function(response)
                             {
@@ -14,8 +15,9 @@ const put_ = function(id){
                                             if(response.status == 404) {
                                                 alert('Дело не найдено!');
                                             }
-                                        }
+                                        },
                         });
+
             };
 
 
@@ -46,6 +48,7 @@ const delete_ = function(id){
                         {
                              var code = '<input type="text" name="name" value="' + response.name + '">' +
                             '<button id="edit-case" onclick = "put_(' + id + ')">Сохранить</button>';
+
                              $('#case-edit-form form').append(code);
                         },
                         error: function(response)
@@ -62,40 +65,12 @@ const delete_ = function(id){
      }
 
 
-
-
-
 $(function(){
-
-
-    const appendCase = function(data){
-        var caseCode = '<a href="#" class="case-link" data-id="' +
-            data.id + '">' + data.name + '</a><br>' +
-      '<button id="edit_' + data.id + '" class = editButton onclick = "edit_(' + data.id +
-      ')">Редактировать</button>' +
-     ' <button id="delete_' + data.id + '" class = deleteButton onclick = "delete_(' + data.id +
-      ')">Удалить</button>';
-
-        $('#toDo-list')
-            .append('<div>' + caseCode + '</div>');
-    };
-
-    //Loading Cases on load page
-    $.get('/cases/', function(response)
-    {
-     $('#case-form').css('display', 'none');
-     $('#case-edit-form').css('display', 'none');
-        for(i in response) {
-             appendCase(response[i]);
-        }
-    });
 
     //Show adding case form
     $('#show-add-case-form').click(function(){
         $('#case-form').css('display', 'flex');
     });
-
-
 
     //Closing adding case form
     $('#case-form').click(function(event){
@@ -156,20 +131,16 @@ $(function(){
         var data = $('#case-form form').serialize();
         $.ajax({
             method: "POST",
+            async: false,
             url: '/cases/',
             data: data,
             success: function(response)
             {
                 $('#case-form').css('display', 'none');
-                var case_ = {};
-                case_.id = response;
-                var dataArray = $('#case-form form').serializeArray();
-                for(i in dataArray) {
-                    case_[dataArray[i]['name']] = dataArray[i]['value'];
-                }
-                appendCase(case_);
+                location.reload();
             }
         });
+
         return false;
     });
 

@@ -2,9 +2,10 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Book Library</title>
-    <script src="/js/jquery-3.4.0.min.js"></script>
-    <script src="/js/main.js"></script>
+    <title>ToDoList</title>
+<script src="../js/jquery-3.4.0.min.js"></script>
+   <script src="../js/main.js"></script>
+
     <link rel="stylesheet" type="text/css" href="/css/styles.css">
 </head>
 <body>
@@ -17,16 +18,22 @@
             <button id="save-case">Сохранить</button>
         </form>
     </div>
-    <h1>Список дел (<span th:text="${casesCount}">0</span>)</h1>
+    <div id="case-edit-form">
+        <form>
+            <label>Введите новое название дела:</label>
+        </form>
+    </div>
+ <h1>Список дел (<span th:text="${casesCount}"></span>)</h1>
     <button id="show-add-case-form">Добавить дело</button>
+    <button id="delete_All">Очистить список дел</button>
     <br><br>
     <div id="toDo-list">
         <div th:each="case_ : ${cases}">
-            <a href="#" class="case-link" th:attr="data-id=${case_.id}" th:text="${case_.name}"></a>
-            <button id = "edit_${case_.id}">Редактировать текст дела</button>
-            <button id = "delete_${case_.id}">Удалить  дело</button>
+            <a href="#" class="case-link" th:attr="data-id=${case_.id}" th:text="${case_.name}"> </a> <br>
+            <button  th:id="|edit_${case_.id}|"  class = editButton th:onclick="|edit_(${case_.id})|">Редактировать</button>
+           <button th:id="|delete_${case_.id}|"   class=deleteButton th:onclick="|delete_(${case_.id})|">Удалить</button>
         </div>
     </div>
-    <p th:text="${someParameter}"></p>
+<!--    <p th:text="${someParameter}"></p>-->
 </body>
 </html>
