@@ -1,4 +1,4 @@
-package mongo;
+﻿package mongo;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
@@ -6,6 +6,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.BsonDocument;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,21 +35,22 @@ public static final String PATH = "src/main/resources/mongo.csv";
         readFileIntoCollection(collection);
 
         //Запрос на общее количество студентов в базе данных
-        AtomicInteger count = new AtomicInteger(0);
+       /* AtomicInteger count = new AtomicInteger(0);
         collection.find().forEach((Consumer<Document>) document -> {
             count.getAndIncrement();
-        });
-        System.out.println("Количество студентов в базе данных: " + count);
+        });*/
+        System.out.println("Количество студентов в базе данных: " + collection.countDocuments());
 
-        //Запрос на количество студентоы старше 40 лет
-       AtomicInteger countSec = new AtomicInteger(0);
+        //Запрос на количество студентов старше 40 лет
+
         BsonDocument querySec = BsonDocument.parse("{Age: {$gt : 40} }");
+        System.out.println("Количество студентов в базе данных старше 40 лет: " + collection.countDocuments(querySec));
+       /*AtomicInteger countSec = new AtomicInteger(0);
+
         collection.find(querySec).forEach((Consumer<Document>) document -> {
             countSec.getAndIncrement();
-        });
-        System.out.println("Количество студентов в базе данных старше 40 лет: " + countSec);
-
-
+        });*/
+        
         //Запрос на имя самого молодого студента
        FindIterable<Document> docList = collection.find().sort(ascending("Age")).limit(1);
         String young = "";
