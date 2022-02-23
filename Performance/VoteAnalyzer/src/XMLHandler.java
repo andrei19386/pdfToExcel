@@ -16,11 +16,9 @@ public class XMLHandler extends DefaultHandler {
     private static SimpleDateFormat visitDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
     private Map<Voter, Integer> voterCounts;
     private Map<Integer, WorkTime> voteStationWorkTimes;
-    //private WorkTime[] workTimes;
 
     public XMLHandler() {
         voterCounts = new HashMap<>();
-        //workTimes = new WorkTime[MAX_WORKTIMES];
         voteStationWorkTimes =  new HashMap<>();
     }
 
@@ -37,9 +35,7 @@ public class XMLHandler extends DefaultHandler {
 
                 int station = Integer.parseInt(attributes.getValue("station"));
                 Date time = visitDateFormat.parse(attributes.getValue("time"));
-                //WorkTime workTime = new WorkTime();
-                //workTime.addVisitTime(time.getTime());
-                //workTimes[station - 1] = workTime;
+
                 WorkTime workTime = voteStationWorkTimes.get(station);
                 if (workTime == null) {
                     workTime = new WorkTime();
@@ -77,12 +73,4 @@ public class XMLHandler extends DefaultHandler {
         }
     }
 
-    /*public void printTimesVer2() {
-        for(int i = 0; i < MAX_WORKTIMES; i++) {
-            int votingStation = i + 1;
-            if(workTimes[i] != null) {
-                System.out.println("\t" + votingStation + " - " + workTimes[i]);
-            }
-        }
-    }*/
 }

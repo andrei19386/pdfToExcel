@@ -7,6 +7,14 @@ public class TimePeriod implements Comparable<TimePeriod> {
     private long from;
     private long to;
 
+    public long getFrom() {
+        return from;
+    }
+
+    public long getTo() {
+        return to;
+    }
+
     /**
      * Time period within one day
      *
@@ -31,14 +39,14 @@ public class TimePeriod implements Comparable<TimePeriod> {
         }
     }
 
-    public void appendTime(Date visitTime) {
+    public void appendTime(long visitTime) {
         SimpleDateFormat dayFormat = new SimpleDateFormat("yyyy.MM.dd");
         if (!dayFormat.format(new Date(from))
-            .equals(dayFormat.format(new Date(visitTime.getTime())))) {
+            .equals(dayFormat.format(new Date(visitTime)))) {
             throw new IllegalArgumentException(
                 "Visit time must be within the same day as the current TimePeriod!");
         }
-        long visitTimeTs = visitTime.getTime();
+        long visitTimeTs = visitTime;
         if (visitTimeTs < from) {
             from = visitTimeTs;
         }
