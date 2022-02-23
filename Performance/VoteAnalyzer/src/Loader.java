@@ -5,41 +5,55 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 
 public class Loader {
+// Для DOM-парсера Usage = 242_848_192 при использовании 18М файла
+// Для SAX-парсера Usage = 161_122_088 при использовании 18М файла
 
-    private static SimpleDateFormat birthDayFormat = new SimpleDateFormat("yyyy.MM.dd");
-    private static SimpleDateFormat visitDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
+  //  private static SimpleDateFormat birthDayFormat = new SimpleDateFormat("yyyy.MM.dd");
+  //  private static SimpleDateFormat visitDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
 
-    private static HashMap<Integer, WorkTime> voteStationWorkTimes = new HashMap<>();
-    private static HashMap<Voter, Integer> voterCounts = new HashMap<>();
+   // private static HashMap<Integer, WorkTime> voteStationWorkTimes = new HashMap<>();
+  //  private static HashMap<Voter, Integer> voterCounts = new HashMap<>();
 
     public static void main(String[] args) throws Exception {
-        String fileName = "res/data-1M.xml";
-
-        parseFile(fileName);
+        String fileName = "res/data-18M.xml";
+        long usage = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        /*parseFile(fileName);
 
         //Printing results
         System.out.println("Voting station work times: ");
-        for (Integer votingStation : voteStationWorkTimes.keySet()) {
+        for (int votingStation : voteStationWorkTimes.keySet()) {
             WorkTime workTime = voteStationWorkTimes.get(votingStation);
             System.out.println("\t" + votingStation + " - " + workTime);
         }
 
         System.out.println("Duplicated voters: ");
         for (Voter voter : voterCounts.keySet()) {
-            Integer count = voterCounts.get(voter);
+            int count = voterCounts.get(voter);
             if (count > 1) {
                 System.out.println("\t" + voter + " - " + count);
             }
-        }
+        }*/
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        SAXParser parser = factory.newSAXParser();
+        XMLHandler handler = new XMLHandler();
+        parser.parse(new File(fileName), handler);
+        handler.printTimes();
+        handler.printDuplicatedVoters();
+
+
+        usage = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory() - usage;
+        System.out.println("Usage = " + usage);
     }
 
-    private static void parseFile(String fileName) throws Exception {
+/*    private static void parseFile(String fileName) throws Exception {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = dbf.newDocumentBuilder();
         Document doc = db.parse(new File(fileName));
@@ -60,8 +74,8 @@ public class Loader {
                 .parse(attributes.getNamedItem("birthDay").getNodeValue());
 
             Voter voter = new Voter(name, birthDay);
-            Integer count = voterCounts.get(voter);
-            voterCounts.put(voter, count == null ? 1 : count + 1);
+            int count = voterCounts.get(voter);
+            voterCounts.put(voter, count == 0 ? 1 : count + 1);
         }
     }
 
@@ -72,7 +86,7 @@ public class Loader {
             Node node = visits.item(i);
             NamedNodeMap attributes = node.getAttributes();
 
-            Integer station = Integer.parseInt(attributes.getNamedItem("station").getNodeValue());
+            int station = Integer.parseInt(attributes.getNamedItem("station").getNodeValue());
             Date time = visitDateFormat.parse(attributes.getNamedItem("time").getNodeValue());
             WorkTime workTime = voteStationWorkTimes.get(station);
             if (workTime == null) {
@@ -82,4 +96,5 @@ public class Loader {
             workTime.addVisitTime(time.getTime());
         }
     }
+    */
 }
