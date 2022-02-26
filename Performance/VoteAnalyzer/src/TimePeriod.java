@@ -7,14 +7,6 @@ public class TimePeriod implements Comparable<TimePeriod> {
     private long from;
     private long to;
 
-    public long getFrom() {
-        return from;
-    }
-
-    public long getTo() {
-        return to;
-    }
-
     /**
      * Time period within one day
      *

@@ -2,6 +2,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -11,14 +12,15 @@ import java.util.Map;
 public class XMLHandler extends DefaultHandler {
     Voter voter;
 
-    public static  final int MAX_WORKTIMES = 300;
     private static SimpleDateFormat birthDayFormat = new SimpleDateFormat("yyyy.MM.dd");
     private static SimpleDateFormat visitDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-    private Map<Voter, Integer> voterCounts;
+
+    private int limit = 1_500_000;
+    private int number = 0;
+
     private Map<Integer, WorkTime> voteStationWorkTimes;
 
     public XMLHandler() {
-        voterCounts = new HashMap<>();
         voteStationWorkTimes =  new HashMap<>();
     }
 
@@ -29,22 +31,12 @@ public class XMLHandler extends DefaultHandler {
                 Date birthDay = birthDayFormat.parse(attributes.getValue("birthDay"));
                 voter = new Voter(attributes.getValue("name"), birthDay);
             }
-            else if(qName.equals("visit") && voter != null) {
-                int count = voterCounts.getOrDefault(voter,0);
-                voterCounts.put(voter,count + 1);
+            else if(qName.equals("visit") && voter != null && number < limit) {
 
-                int station = Integer.parseInt(attributes.getValue("station"));
-                Date time = visitDateFormat.parse(attributes.getValue("time"));
-
-                WorkTime workTime = voteStationWorkTimes.get(station);
-                if (workTime == null) {
-                    workTime = new WorkTime();
-                    voteStationWorkTimes.put(station, workTime);
-                }
-                workTime.addVisitTime(time.getTime());
-
+                DBConnection.countVoter(voter.getName(), birthDayFormat.format(voter.getBirthDay()));
+                number++;
             }
-        } catch (ParseException e) {
+        } catch (ParseException | SQLException e) {
             e.printStackTrace();
         }
     }
@@ -56,21 +48,16 @@ public class XMLHandler extends DefaultHandler {
        }
     }
 
-    public void printDuplicatedVoters() {
-        for(Voter voter : voterCounts.keySet()) {
-            int count = voterCounts.get(voter);
-            if(count > 1){
-                System.out.println(voter.toString() + " - " + count);
-            }
-        }
+    public void printDuplicatedVoters() throws SQLException {
+        DBConnection.printVoterCounts();
     }
 
 
-    public void printTimes() {
+    /*public void printTimes() {
         for (int votingStation : voteStationWorkTimes.keySet()) {
             WorkTime workTime = voteStationWorkTimes.get(votingStation);
             System.out.println("\t" + votingStation + " - " + workTime);
         }
-    }
+    }*/
 
 }
