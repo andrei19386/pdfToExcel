@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&useUnicode=true&characterEncoding=utf8
+      &serverTimezone=UTC
+    username: root
+    password: 123456789
+  jpa:
+    hibernate:
+      ddl-auto: none
+---
+spring:
+   config:
+     activate:
+       on-profile: default
+user-agent: HeliontSearchBot
+pathToInterface: /admin
+sites:
+   - url: https://lenta.ru
+     name: Лента.ру
+   - url: https://skillbox.ru
+     name: Skillbox
+   - url: http://www.playback.ru
+     name: Playback
+---
+spring:
+  profiles:
+    active:
+      default
