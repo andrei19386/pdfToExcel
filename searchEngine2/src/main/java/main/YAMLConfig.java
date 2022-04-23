@@ -7,6 +7,10 @@ import org.springframework.context.annotation.Configuration;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Этот класс нужен для чтения параметров из файла application.yml (Параметров, записываемых в этот файл
+ * в соответствии с техническим заданием)
+ */
 @Configuration
 @EnableConfigurationProperties
 @ConfigurationProperties

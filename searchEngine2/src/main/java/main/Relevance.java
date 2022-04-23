@@ -1,5 +1,8 @@
 package main;
 
+/**
+ *  Вспомогательный класс для определения релевантности страницы для поискового запроса
+ */
 public class Relevance {
     private int pageId;
     private double relevance;

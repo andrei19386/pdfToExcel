@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 
-
+/**
+ * Этот класс нужен для корректного обновления страницы Статистики
+ */
 @Controller
 public class DefaultController {
 

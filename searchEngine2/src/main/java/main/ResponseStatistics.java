@@ -1,5 +1,8 @@
 package main;
 
+/**
+ * Класс формирования ответа на запрос статистики (в соответствии с техническим заданием)
+ */
 public class ResponseStatistics {
     private boolean result;
     private StatisticsInfo statistics;

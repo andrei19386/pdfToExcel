@@ -1,5 +1,8 @@
 package main;
 
+/**
+ * Этот класс нужен для разбиения страницы на блоки по их значимости в соответствии с таблицей field
+ */
 public class Block {
     private String blockString;
     private double blockWeight;

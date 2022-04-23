@@ -3,6 +3,9 @@ package main;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Класс для полной структуры статистики (в соответствии с техническим заданием)
+ */
 public class StatisticsInfo {
     private Total total;
     private List<Detailed> detailed = new ArrayList<>();

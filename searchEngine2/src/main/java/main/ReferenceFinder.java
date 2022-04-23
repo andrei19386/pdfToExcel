@@ -14,6 +14,9 @@ import java.util.*;
 import java.util.concurrent.RecursiveTask;
 import java.util.stream.Collectors;
 
+/**
+ * Этот класс нужен для формирования объекта рекурсивной задачи для ее запуска с использованием ForkJoin
+ */
 public class ReferenceFinder extends RecursiveTask<List<String>> {
 
     private final String node;
@@ -22,28 +25,38 @@ public class ReferenceFinder extends RecursiveTask<List<String>> {
 
     private final DBConnection dbConnection;
 
-    private boolean onlyIndexation;
-
     private final int siteId;
 
+    /**
+     * Это временное хранилище уникальных адресов, по которым уже прошла индексация. Необходимо для исключения
+     * дублирования индексации страниц в случае повторяющихся ссылок
+     */
+    private static Set<String> nodes = Collections.synchronizedSet(new HashSet<>());
 
-    public ReferenceFinder(String node, String userAgent, DBConnection dbConnection, int siteId,
-                           boolean onlyIndexation) {
+    public static Set<String> getNodes() {
+        return nodes;
+    }
+
+    public ReferenceFinder(String node, DBConnection dbConnection, int siteId
+                          ) {
         this.node = node;
-        this.userAgent = userAgent;
+        this.userAgent = SiteController.userAgent;
         this.dbConnection = dbConnection;
         this.siteId = siteId;
-        this.onlyIndexation = onlyIndexation;
     }
 
 
+    /**
+     * @param document
+     * @return Фунцкия возвращает список дочерних узлов, каждый узел уникальный
+     */
     public List<String> getChildren(Document document) {
         List<String> children = null;
         Set<String> childSet = new HashSet<>();
 
         try {
-            Thread.sleep(1000);
-            Elements elements = document.select("a[href],link[href]");
+            Thread.sleep(4000);
+            Elements elements = document.select("a[href]");
             for (Element element : elements) {
                 setFormation(node, childSet, element);
             }
@@ -56,6 +69,11 @@ public class ReferenceFinder extends RecursiveTask<List<String>> {
         return children;
     }
 
+    /**
+     * @param node Текущий узел
+     * @param childSet - Формируемый набор уникальных узлов
+     * @param element - Ссылочный элемент с текущей страницы
+     */
     private void setFormation(String node, Set<String> childSet, Element element) {
         if (element.attr("abs:href").length() > node.length() &&
                 element.attr("abs:href").substring(0, node.length()).compareTo(node) == 0) {
@@ -68,28 +86,17 @@ public class ReferenceFinder extends RecursiveTask<List<String>> {
     protected List<String> compute() {
 
         List<String> resultSet = new ArrayList<>();
+
+        //Исключение ссылки на внутренние элементы страницы
         if(node.contains("#")) {
             return resultSet;
         }
-        Document document = null;
+
         List<String> children = null;
 
-        Page page = new Page();
-        page.setPath(getPathName(node));
+        Document document = getDocument();
 
-        try {
-            document = getStatusCode(page);
-            formAndExecuteInsertQuery(page);
-            if(document != null) {
-                List<Block> blocks = getBlocks(document);
-                formDB(blocks);
-            }
-        } catch ( SQLException e) {
-            e.printStackTrace();
-        }
-        if(onlyIndexation){
-            return resultSet;
-        }
+        //Если документ не является конечным файлом, осуществляем поиск дочерних узлов
         if (node.lastIndexOf("/") > node.lastIndexOf(".")
                 && document != null
         ) {
@@ -106,7 +113,41 @@ public class ReferenceFinder extends RecursiveTask<List<String>> {
         return resultSet;
     }
 
+    /**
+     * @return возвращает document для текущего узла. Попутно формирует информацию о странице, ее леммах
+     * и заполняет индекс
+     */
+    protected Document getDocument() {
+        Document document = null;
+        Page page = new Page();
+        page.setPath(getPathName(node));
+        page.setSiteId(siteId);
+        try {
+            document = getStatusCode(page);
+            if(document == null && getPathName(node).equals("/")){
+                page.setCode(404);
+                page.setHtmlCode("Страница не найдена!");
+            }
+            if(page.getHtmlCode() == null){
+                page.setHtmlCode("");
+            }
+            dbConnection.formInsertQuery(page);
+            if(document != null) {
+                List<Block> blocks = getBlocks(document);
+                formDB(blocks);
+            }
+        } catch ( SQLException e) {
+            e.printStackTrace();
+        }
+        return document;
+    }
 
+
+    /**
+     * @param blocks - блоки в соответствии с таблицей field
+     * @throws SQLException
+     * Инициирует формирование и последующее запросов на добавление информации о леммах и индексах в Базу Данных
+     */
     private void formDB(List<Block> blocks) throws SQLException {
         Map<Index,Double> indexMap = new HashMap<>();
         Lemmatizer lemmatizer = new Lemmatizer(SiteController.getLuceneMorph());
@@ -120,6 +161,13 @@ public class ReferenceFinder extends RecursiveTask<List<String>> {
         dbConnection.insertIndex(indexMap,siteId);
     }
 
+    /**
+     * @param indexMap заполняемая Map для текущей страницы для последующей вставки данных в таблицу index
+     * @param lemmaMap Map из лемм текущей страницы для заполнения indexMap
+     * @param blockWeight Весовой коэффициент блока в соответствии с таблицей field
+     * @throws SQLException
+     * Функция формирует Map для вставки в таблицу index
+     */
     private void formIndex(Map<Index,Double> indexMap, Map<String, Integer> lemmaMap, double blockWeight) throws SQLException {
         for(Map.Entry<String,Integer> entry: lemmaMap.entrySet()){
             Index index = new Index();
@@ -134,6 +182,11 @@ public class ReferenceFinder extends RecursiveTask<List<String>> {
         }
     }
 
+    /**
+     * @param document
+     * @return
+     * Возвращает блоки данных в соответствии с таблицей field с заданными весовыми коэффициентами
+     */
     private List<Block> getBlocks(Document document) {//Получаем блоки и очищаем их от html-тегов
         List<Block> blocks = new ArrayList<>();
         for(Map.Entry<String,Double> entry : SiteController.getSelectors().entrySet()) {
@@ -146,33 +199,37 @@ public class ReferenceFinder extends RecursiveTask<List<String>> {
         return blocks;
     }
 
+
+    /**
+     * @param page
+     * @return
+     * Функция формирует HTTP-запрос, подключается к странице и получает данные с нее.
+     * Возвращает объект document для дальнейшей обработки
+     */
     private Document getStatusCode(Page page) {
         int code = 0;
         Document document = null;
         try {
             Connection.Response response = Jsoup.connect(node)
                     .userAgent(userAgent)
-                    .referrer("http://www.google.com").execute();
+                    .referrer("http://www.google.com").ignoreHttpErrors(true).ignoreContentType(true)
+                    .execute();
             code = response.statusCode();
-            document = response.parse();
             page.setCode(code);
+            document = response.parse();
             getHTML(document, page);
         } catch (IOException e) {
-            String message = e.getMessage();
-            page.setHtmlCode(e.getMessage());
-            String[] words = message.split("=");
-            if (words.length > 1) {
-                System.out.println(words[1].substring(0, 3));
-                code = Integer.parseInt(words[1].substring(0, 3));
-                page.setCode(code);
-            } else if (message.contains("Unhandled content type. Must be")){
-                code = 200;
-                page.setCode(code);
-            }
+          e.printStackTrace();
+            System.out.println("Адрес страницы, к которой не удалось подключиться: " + node);
         }
         return document;
     }
 
+    /**
+     * @param str
+     * @return
+     * Вспомогательная функция для корректной вставки escape-последовательностей с помощью SQL-запросов
+     */
     private static String mysqlRealEscapeString(String str) {
         if (str == null) {
             return null;
@@ -195,6 +252,11 @@ public class ReferenceFinder extends RecursiveTask<List<String>> {
     }
 
 
+    /**
+     * @param document
+     * @param page
+     * Непосредственно вставляет в объект page HTML-код страницы
+     */
     private void getHTML(Document document, Page page)  {
 
         String html = "";
@@ -207,10 +269,12 @@ public class ReferenceFinder extends RecursiveTask<List<String>> {
         page.setHtmlCode(html);
     }
 
-    private void formAndExecuteInsertQuery(Page page) throws SQLException {
-        dbConnection.formInsertQuery(page.getPath(), page.getCode(), page.getHtmlCode(),siteId);
-    }
 
+    /**
+     * @param node
+     * @return
+     * Функция получает относительный адрес текущей страницы
+     */
     public static String getPathName(String node) {
         String path = "";
         int index = node.indexOf('/', 8);
@@ -220,6 +284,11 @@ public class ReferenceFinder extends RecursiveTask<List<String>> {
         return path;
     }
 
+    /**
+     * @param resultSet
+     * @param taskList
+     * Отладочная функция для отображения карты сайта
+     */
     private void resultFormation(List<String> resultSet, List<ReferenceFinder> taskList)  {
         List<String> resultList = new ArrayList<>();
         resultList.add(node);
@@ -238,6 +307,11 @@ public class ReferenceFinder extends RecursiveTask<List<String>> {
         }
     }
 
+    /**
+     * @param children
+     * @param taskList
+     * Формирует список задач для их исполнения с помощью ForkJoin
+     */
     private void taskListFormation(List<String> children, List<ReferenceFinder> taskList) {
 
         for (String child : children) {
@@ -248,11 +322,14 @@ public class ReferenceFinder extends RecursiveTask<List<String>> {
                 } else {
                     fullChild = node + child;
                 }
-
-                ReferenceFinder referenceFinder = new ReferenceFinder(fullChild,userAgent,dbConnection,siteId,
-                        false);
-                referenceFinder.fork();
-                taskList.add(referenceFinder);
+                //Проверяет, не было ли уже запуска индексации страницы с таким адресом,
+                // если нет, индексация выполняется, при этом предварительно страница добавляется в список nodes
+                if(!nodes.contains(fullChild)) {
+                    nodes.add(fullChild);
+                    ReferenceFinder referenceFinder = new ReferenceFinder(fullChild, dbConnection, siteId);
+                    referenceFinder.fork();
+                    taskList.add(referenceFinder);
+                }
             }
         }
     }

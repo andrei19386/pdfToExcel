@@ -1,5 +1,8 @@
 package main;
 
+/**
+ * Вспомогательный класс для формирования информации о статистике сайта (в соответствии с техническим заданием)
+ */
 public class Total {
     private int sites;
     private int pages;

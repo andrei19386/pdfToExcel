@@ -1,5 +1,8 @@
 package main;
 
+/**
+ * Класс формирования структуры ответа на HTTP-запрос
+ */
 public class ResponseMessage {
     private boolean result;
     private String error;

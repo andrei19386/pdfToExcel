@@ -2,15 +2,15 @@ package main;
 
 import main.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.ResultSetExtractor;
 
 import java.sql.*;
 import java.time.ZoneOffset;
 import java.util.*;
 
-
+/**
+ * Это класс для формирования и исполнения SQL-запросов к базе данных
+ */
 public class DBConnection {
 
     @Autowired
@@ -43,18 +43,10 @@ public class DBConnection {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-
-    public void executeInsert(StringBuilder insertQuery) throws SQLException {
-        String sql = "INSERT INTO page(path,code,content,site_id) VALUES "
-                + insertQuery.toString() +
-                " ON DUPLICATE KEY UPDATE path = path";
-
-        synchronized (pageRepository) {
-            jdbcTemplate.execute(sql);
-            System.out.println("Добавляется очередная страница в Базу данных");
-        }
-    }
-
+    /**
+     * @return Возвращает Map из селекторов для обработки лемм страницы в соответствии с таблицей field
+     * @throws SQLException
+     */
     public  Map<String,Double> getSelectors() throws SQLException {
         Map<String,Double> result = new HashMap<>();
        Iterable<Field> fieldIterable = fieldRepository.findAll();
@@ -79,27 +71,43 @@ public class DBConnection {
         return getIntegerSQL(sql);
     }
 
+    /**
+     * @param page
+     * @throws SQLException
+     * Формирует SQL-запрос для добавления новой страницы в базу данных
+     */
+    public  void formInsertQuery(Page page) throws SQLException {
 
-
-    public  void formInsertQuery(String path, int code, String content, int siteId) throws SQLException {
-
-        StringBuilder insertQuery = new StringBuilder();
-
-        if (path.equals("")) {
+        if (page.getPath().equals("")) {
             return;
         }
-        insertQuery.append("('" + path + "', '" + code +  "', '" + content + "', " + siteId + " )" );
-
-       executeInsert(insertQuery);
+        String sql = "INSERT INTO page(path,code,content,site_id) VALUES ('"
+                + page.getPath() + "', " + page.getCode() + ", '" + page.getHtmlCode() + "', " +
+                page.getSiteId() + ")" +
+               " ON DUPLICATE KEY UPDATE path = path";
+        synchronized (pageRepository) {
+            jdbcTemplate.execute(sql);
+            System.out.println("Добавляется очередная страница в Базу данных... ");
+        }
 
     }
 
-
+    /**
+     * @return Возвращает наибольшую частоту встречающихся лемм на всех индексированных сайтах. Это необходимо для
+     * выполнения в соответствии с ТЗ исключения из поискового запроса тех лемм,
+     * которые встречаются чаще, чем определенный процент от наибольшей частоты
+     * @throws SQLException
+     */
     public int getMaxFrequency() throws SQLException {
         String sql = "SELECT MAX(frequency) AS max_frequency from lemma";
         return getIntegerSQL(sql);
     }
 
+    /**
+     * @param sql
+     * @return
+     * Возвращает значение типа Integer по результатам выполнения SQL-запроса
+     */
     private int getIntegerSQL(String sql) {
         List<Integer> list = jdbcTemplate.queryForList(sql, Integer.class);
         if( list != null && !list.isEmpty()) {
@@ -108,6 +116,12 @@ public class DBConnection {
         return 0;
     }
 
+    /**
+     * @param lemmaId
+     * @return
+     * @throws SQLException
+     * Возвращает Набор уникальных значений типа Integer по результатам выполнения SQL-запроса
+     */
     public Set<Integer> getPagesId(int lemmaId) throws SQLException {
         Set<Integer> result = new HashSet<>();
         String sql = "SELECT page_id from search_engine.index WHERE lemma_id = " + lemmaId;
@@ -117,6 +131,13 @@ public class DBConnection {
     }
 
 
+    /**
+     * @param index
+     * @param id
+     * @return
+     * @throws SQLException
+     * Возвращает rank леммы на странице
+     */
     public double getRank(int index, int id) throws SQLException {
         if(index == 0 || id == 0) {
             return 0;
@@ -129,6 +150,12 @@ public class DBConnection {
         return 0;
     }
 
+    /**
+     * @param lemmaMap
+     * @param siteId
+     * @throws SQLException
+     * Формирует множественный Insert-запрос и вставляет леммы для текущей страницы
+     */
     public void insertLemmas(Map<String, Integer> lemmaMap, int siteId) throws SQLException {
         if(lemmaMap.isEmpty()){
             return;
@@ -146,10 +173,17 @@ public class DBConnection {
         }
         sql.append(" ON DUPLICATE KEY UPDATE `frequency` = `frequency` + 1 ");
         synchronized (lemmaRepository) {
+            System.out.println("Формируется список лемм для сайта с индексом: " + siteId);
             jdbcTemplate.execute(sql.toString());
         }
     }
 
+    /**
+     * @param indexMap
+     * @param siteId
+     * @throws SQLException
+     * Формирует множественный Insert-запрос и вставляет данные в таблицу index
+     */
     public  void insertIndex(Map<Index, Double> indexMap, int siteId) throws SQLException {
         if(indexMap.isEmpty()){
             return;
@@ -167,33 +201,12 @@ public class DBConnection {
             } else {
                 sql.append(", (" + nodeId + ", " + lemmaId + ", " + rank + ")");
             }
-
         }
         synchronized (indexRepository) {
+            System.out.println("Происходит индексация страницы на сайте с идентификатором " + siteId + " ...");
             jdbcTemplate.execute(sql.toString());
-            System.out.println("Происходит индексация ...");
         }
     }
-
-    public  String findPathById(int pageId) throws SQLException {
-        String sql = "SELECT path from search_engine.page WHERE id =" + pageId;
-
-        return getStringSQL(sql);
-    }
-
-    public String findContentById(int pageId) throws SQLException {
-        String sql = "SELECT content from search_engine.page WHERE id =" + pageId;
-        return getStringSQL(sql);
-    }
-
-    private String getStringSQL(String sql) {
-        List<String> list = jdbcTemplate.queryForList(sql, String.class);
-        if( list != null && !list.isEmpty()) {
-            return list.get(0);
-        }
-        return "";
-    }
-
 
     public Page findPageInfoById(int pageId) throws SQLException {
 
@@ -204,7 +217,11 @@ public class DBConnection {
         return null;
     }
 
-
+    /**
+     * @param total
+     * @return
+     * Формирует информацию типа Detailed для формирования ответа на HTTP-запрос по статистике главной страницы
+     */
     public List<Detailed> getDetaileds(Total total) {
         String sql = "SELECT COUNT(*) FROM search_engine.page";
         List<Integer> countPages = jdbcTemplate.queryForList(sql,Integer.class);
@@ -236,43 +253,47 @@ public class DBConnection {
 
     public void getLastError(Site site, Detailed detailedElement) {
         String sql;
-        sql = "SELECT code, content FROM search_engine.page where site_id = " + site.getId() + " and " +
+        sql = "SELECT code FROM search_engine.page where site_id = " + site.getId() + " and " +
                 " code >= 400 ORDER BY id DESC LIMIT 1";
 
-        Page error = jdbcTemplate.query(sql, new ResultSetExtractor<Page>() {
-
-            @Override
-            public Page extractData(ResultSet rs) throws SQLException, DataAccessException {
-                Page page = new Page();
-                if(rs.next()){
-                    page.setCode(rs.getInt("code"));
-                    page.setHtmlCode(rs.getString("content"));
-                    rs.close();
-                    return page;
-                }
-                rs.close();
-                return null;
-            }
-        });
-        if(error != null) {
-            detailedElement.setError(error.getHtmlCode());
-            detailedElement.setCode(error.getCode());
-        } else {
-            detailedElement.setCode(200);
-            detailedElement.setError("");
+        int code = getIntegerSQL(sql);
+        detailedElement.setCode(code);
+        switch (code) {
+            case 0:
+                detailedElement.setError("");
+                detailedElement.setCode(200);
+                break;
+            case 404:
+                detailedElement.setError("Страница не найдена!");
+                break;
+            case 401:
+                detailedElement.setError("Неавторизованный пользователь");
+                break;
+            case 403:
+                detailedElement.setError("Запрет доступа");
+                break;
+            case 405:
+                detailedElement.setError("Метод запроса отключен и не может быть использован");
+                break;
+            case 500:
+                detailedElement.setError("Ошибка на сервере");
+                break;
         }
-    }
-
-
-    public void cleanIndex(){
-        String sql = "DELETE FROM search_engine.index";
-        jdbcTemplate.execute(sql);
     }
 
     public void deleteEntriesForPage (int pageId) throws SQLException {
         String sql = "DELETE FROM search_engine.index WHERE page_id = " + pageId;
         jdbcTemplate.execute(sql);
         sql = "DELETE FROM search_engine.page WHERE id = " + pageId;
+        jdbcTemplate.execute(sql);
+    }
+
+    public void cleanDB(){
+        String sql = "TRUNCATE TABLE search_engine.index";
+        jdbcTemplate.execute(sql);
+        sql = "TRUNCATE TABLE search_engine.lemma";
+        jdbcTemplate.execute(sql);
+        sql = "TRUNCATE TABLE search_engine.page";
         jdbcTemplate.execute(sql);
     }
 

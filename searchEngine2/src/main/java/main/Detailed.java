@@ -2,6 +2,9 @@ package main;
 
 import main.model.SiteType;
 
+/**
+ * Этот класс нужен для формирования структуры ответа для страницы статистики
+ */
 public class Detailed {
     private String url;
     private String name;
