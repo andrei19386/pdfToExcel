@@ -33,7 +33,7 @@ public class Lemmatizer {
      * @param lemmaMap
      * Непосредственно добавляет лемму в Map
      */
-    private  void putIntoMap(String lemmaString, Map<String,Integer> lemmaMap) {
+    private void putIntoMap(String lemmaString, Map<String,Integer> lemmaMap) {
 
         if(lemmaString == null || lemmaString.isEmpty() || isOfficialWord(lemmaString)) {
             return;

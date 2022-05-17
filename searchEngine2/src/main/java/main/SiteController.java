@@ -82,6 +82,10 @@ public class SiteController {
         return luceneMorph;
     }
 
+    public static void setUserAgent(String userAgent) {
+        SiteController.userAgent = userAgent;
+    }
+
     public static void setLuceneMorph(LuceneMorphology luceneMorph) {
         SiteController.luceneMorph = luceneMorph;
     }
@@ -121,6 +125,14 @@ public class SiteController {
 
     public static boolean getIsIndexing() {
         return isIndexing;
+    }
+
+    public DBConnection getDbConnection() {
+        return dbConnection;
+    }
+
+    public void setDbConnection(DBConnection dbConnection) {
+        this.dbConnection = dbConnection;
     }
 
     public SiteController(SiteRepository siteRepository,
@@ -571,7 +583,7 @@ public class SiteController {
      * Возвращает индексы страниц в порядке поиска наиболее редко встречающихся лемм
      * @throws SQLException
      */
-    private Set<Integer>  generatePagesSetOrderingByFrequency(Set<Lemma> lemmaSet) throws SQLException {
+    protected Set<Integer>  generatePagesSetOrderingByFrequency(Set<Lemma> lemmaSet) throws SQLException {
         Set<Integer> listOfPagesId = null;
         Set<Integer> listOfPagesIdNew;
         boolean isFirst = true;
@@ -667,7 +679,7 @@ public class SiteController {
      * Функция инициализации, загружает в оперативную памяти данные о сайтах в оперативную память приложения,
      * создает подключение к базе данных dbConnection, получает селекторы в соответствии с таблицей field
      */
-    private void init(){
+    protected void init(){
         List<YAMLConfig.SiteRead> sites;
         sites = myConfig.getSites();
 

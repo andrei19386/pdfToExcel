@@ -57,7 +57,7 @@ public class DBConnection {
     }
 
     public int getIdByPath(String path, int siteId) throws SQLException {
-        String sql = "SELECT id from page WHERE path='" + path + "' and site_id = '" + siteId + "'";
+        String sql = "SELECT id from search_engine.page WHERE path='" + path + "' and site_id = '" + siteId + "'";
         return getIntegerSQL(sql);
     }
 
@@ -108,7 +108,7 @@ public class DBConnection {
      * @return
      * Возвращает значение типа Integer по результатам выполнения SQL-запроса
      */
-    private int getIntegerSQL(String sql) {
+    protected int getIntegerSQL(String sql) {
         List<Integer> list = jdbcTemplate.queryForList(sql, Integer.class);
         if( list != null && !list.isEmpty()) {
             return list.get(0);
@@ -294,6 +294,10 @@ public class DBConnection {
         sql = "TRUNCATE TABLE search_engine.lemma";
         jdbcTemplate.execute(sql);
         sql = "TRUNCATE TABLE search_engine.page";
+        jdbcTemplate.execute(sql);
+        sql = "TRUNCATE TABLE hibernate_sequence";
+        jdbcTemplate.execute(sql);
+        sql =  "INSERT INTO hibernate_sequence values (1)";
         jdbcTemplate.execute(sql);
     }
 
