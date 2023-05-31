@@ -10,49 +10,95 @@ document.querySelector('.tasks-content').onclick = function(event){
         break;
         case 'edit': editItem(target);
         break;
-        case 'task-box': changeCompletedStatus(target,storageMap);
+        case 'task-box': changeCompletedStatus(target);
      }
      
 }
 
 function editItem(target) {
     let newValue = prompt("Введите новое значение:");
-    localStorage.setItem(target.name, JSON.stringify([newValue, 0])); //put-запрос
-    target.parentElement.outerHTML = generateHTML(target.name, newValue);
-    storageMap.set(target.name, newValue);
-}
+    if(newValue!='') {
+    let xhttp = new XMLHttpRequest();
 
-function deleteItem(target) {
-    localStorage.removeItem(target.name); //delete-запрос
-    target.parentElement.remove();
-    storageMap.delete(target.name);
-    document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size;
-    if (storageMap.size + completedMap.size == 0) {
-        document.querySelector('.no-tasks-message').style.display = "flex";
+         xhttp.onreadystatechange = function(){
+                           if(this.readyState == 4 && this.status == 200){
+                                   target.parentElement.outerHTML = generateHTML(target.name, newValue);
+                                   storageMap.set(target.name, newValue);
+                           }  else if(this.readyState == 4) alert("Error in editing!")
+                       }
+         console.log(`http://127.0.0.1:8080/case/${target.name}`);
+         xhttp.open('PUT',`http://127.0.0.1:8080/case/${target.name}`,true);
+          let formData = new FormData(document.forms.case_);
+          formData.append("name", newValue);
+          xhttp.send(formData);
     }
 }
 
-function changeCompletedStatus(target,storageMap){
-    if(storageMap.has(target.firstElementChild.name)){
-            let value = storageMap.get(target.firstElementChild.name);
-            target.style.textDecoration = 'line-through';
-            target.children[0].style.display='none';
-            target.children[1].style.display='none';
-            storageMap.delete(target.firstElementChild.name);
-            completedMap.set(target.firstElementChild.name,value)         
-            localStorage.setItem(target.firstElementChild.name,JSON.stringify([value,1]));
-            document.querySelector('.tasks-completed').firstElementChild.innerHTML = completedMap.size;
-            document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size; 
+function deleteItem(target) {
+     let xhttp = new XMLHttpRequest();
+
+     xhttp.onreadystatechange = function(){
+                       if(this.readyState == 4 && this.status == 200){
+                           let id = postData(this.responseText);
+                           target.parentElement.remove();
+                           storageMap.delete(target.name);
+                               document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size;
+                               if (storageMap.size + completedMap.size == 0) {
+                                   document.querySelector('.no-tasks-message').style.display = "flex";
+                               }
+                       }  else if(this.readyState == 4) alert("Error in deleting!")
+                   }
+     console.log(`http://127.0.0.1:8080/case/${target.name}`);
+     xhttp.open('DELETE',`http://127.0.0.1:8080/case/${target.name}`,true);
+     xhttp.send();
+}
+
+function changeCompletedStatus(target){
+    console.log(target.firstElementChild.name);
+    console.log(storageMap);
+    if(storageMap.has(+target.firstElementChild.name)){
+
+            let xhttp = new XMLHttpRequest();
+
+                     xhttp.onreadystatechange = function(){
+                                       if(this.readyState == 4 && this.status == 200){
+                                              let value = storageMap.get(+target.firstElementChild.name);
+                                              target.style.textDecoration = 'line-through';
+                                              target.children[0].style.display='none';
+                                              target.children[1].style.display='none';
+                                              storageMap.delete(+target.firstElementChild.name);
+                                              console.log(storageMap);
+                                              completedMap.set(+target.firstElementChild.name,value);
+                                              console.log(completedMap);
+                                              document.querySelector('.tasks-completed').firstElementChild.innerHTML = completedMap.size;
+                                              document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size;
+                                       }  else if(this.readyState == 4) alert("Error in changeStatus!")
+                                   }
+                     console.log(`http://127.0.0.1:8080/case/completed/${target.firstElementChild.name}`);
+                     xhttp.open('PUT',`http://127.0.0.1:8080/case/completed/${target.firstElementChild.name}`,true);
+                     xhttp.send();
+
+
+
     } else {
-            let value = completedMap.get(target.firstElementChild.name);
-            target.style.textDecoration = 'none';
-            target.children[0].style.display='flex';
-            target.children[1].style.display='flex';
-            completedMap.delete(target.firstElementChild.name);
-            storageMap.set(target.firstElementChild.name,value)         
-            localStorage.setItem(target.firstElementChild.name,JSON.stringify([value,0]));
-            document.querySelector('.tasks-completed').firstElementChild.innerHTML = completedMap.size;
-            document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size; 
+     let xhttp = new XMLHttpRequest();
+
+             xhttp.onreadystatechange = function(){
+                 if(this.readyState == 4 && this.status == 200){
+
+                    let value = completedMap.get(+target.firstElementChild.name);
+                    target.style.textDecoration = 'none';
+                    target.children[0].style.display='flex';
+                    target.children[1].style.display='flex';
+                    completedMap.delete(+target.firstElementChild.name);
+                    storageMap.set(+target.firstElementChild.name,value)
+                    document.querySelector('.tasks-completed').firstElementChild.innerHTML = completedMap.size;
+                        document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size;
+            }  else if(this.readyState == 4) alert("Error in changeStatus!")
+            }
+            console.log(`http://127.0.0.1:8080/case/completed/${target.firstElementChild.name}`);
+                                 xhttp.open('PUT',`http://127.0.0.1:8080/case/completed/${target.firstElementChild.name}`,true);
+                                 xhttp.send();
     }
 }
 
@@ -68,53 +114,71 @@ function generateHTML(key,value){//Повторяющийся фрагмент �
 document.querySelector('.plus').onclick = () => {
     let taskText = document.querySelector('.add-task').firstElementChild.value;
     if(taskText != ''){
-        let currentKey = +getMaxKey(storageMap) + 1;
-        localStorage.setItem(currentKey,JSON.stringify([taskText,0]));   //post-запрос
-        document.querySelector('.no-tasks-message').style.display = "none";
 
+          let xhttp = new XMLHttpRequest();
 
-        document.querySelector('.tasks-content').innerHTML += generateHTML(currentKey,taskText);
-            storageMap.set(`${currentKey}`,taskText);
-            document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size;
-            document.querySelector('.add-task').firstElementChild.value="";
+               xhttp.onreadystatechange = function(){
+                   if(this.readyState == 4 && this.status == 200){
+                       let id = postData(this.responseText);
+                       document.querySelector('.tasks-content').innerHTML += generateHTML(id,taskText);
+                       storageMap.set(`${id}`,taskText);
+                       document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size;
+                       document.querySelector('.add-task').firstElementChild.value="";
+                       document.querySelector('.no-tasks-message').style.display = "none";
+                   } else if(this.readyState == 4) alert("Error in addding!")
+               }
+               let formData = new FormData(document.forms.case_);
+               formData.append("name", taskText);
+
+               xhttp.open('POST','http://127.0.0.1:8080/case/',true);
+               xhttp.send(formData);
+
     } else {
         alert("Поле ввода не может быть пустым!")
     }
 }
 
 function getData(data){
-    console.log(data)
+    let result = JSON.parse(data);
+    console.log(data);
+    console.log(result);
+    for(let i=0; i < result.length;i++){
+            let item = result[i];
+            if(item.completed == false) {
+                 storageMap.set(item.id,item.name)
+            } else {
+                completedMap.set(item.id,item.name)
+            }
+        }
+}
+
+
+function postData(data){
+    return data;
 }
 
 
 function showTasks(){
         let xhttp = new XMLHttpRequest();
-        xhttp.withCredentials = true;
 
         xhttp.onreadystatechange = function(){
             if(this.readyState == 4 && this.status == 200){
                 getData(this.responseText);
-            }
+                clearTaskBoxes();
+                    if(storageMap.size + completedMap.size == 0){
+                        document.querySelector('.no-tasks-message').style.display = "flex";
+                    } else {
+                        document.querySelector('.no-tasks-message').style.display = "none";
+                        formHTMLTaskBox(storageMap);
+                    }
+
+                    document.querySelector('.tasks-completed').firstElementChild.innerHTML = completedMap.size;
+                    document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size;
+            }  else if(this.readyState == 4) alert("Error in getting information!")
         }
 
-        xhttp.open('GET','http://127.0.0.1:8080/',true);
-
+        xhttp.open('GET','http://127.0.0.1:8080/case/',true);
         xhttp.send();
-
-     
-     storageMap = getMapFromLocalStorage('0');//get-запросы
-     completedMap = getMapFromLocalStorage('1');
-
-    clearTaskBoxes();
-    if(storageMap.size + completedMap.size == 0){
-        document.querySelector('.no-tasks-message').style.display = "flex";
-    } else {
-        document.querySelector('.no-tasks-message').style.display = "none";
-        formHTMLTaskBox(storageMap);
-    }
-    
-    document.querySelector('.tasks-completed').firstElementChild.innerHTML = completedMap.size;
-    document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size; 
 
 }
 
@@ -139,29 +203,3 @@ function formHTMLTaskBox(storageMap) {
         target.children[1].style.display='none';
     }
 }
-
-//Определяет максимальный ключ в Map. Это нужно, чтобы избежать повторения ключей 
-//при добавлении новых элементов (новый добавляется увеличением максимального занчения ключа на 1)
-function getMaxKey(storageMap){
-    let max = 0;
-    for(let entry of storageMap){
-        if(entry[0]>max){
-            max = entry[0];
-        }
-    }
-    return max;
-}
-
-//Загружает из localStorage данные в списки задач storageMap и completedMap
-//id - идентификатор статуса задачи в localStorage: 0 - не выполнена, 1 - выполнена
-function getMapFromLocalStorage(id){
-    let map = new Map();
-    for(let i=0; i < localStorage.length;i++){
-        let item = JSON.parse(localStorage.getItem(localStorage.key(i)));
-        if(item[1]==id){
-            map.set(localStorage.key(i),item[0]);
-        }
-    }
-    return map;
-}
-

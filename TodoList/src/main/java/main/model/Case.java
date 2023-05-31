@@ -15,6 +15,9 @@ public class Case {
     private boolean isCompleted = false;
     private final LocalDate date = LocalDate.now();
 
+    public Case() {
+    }
+
     public Case(String name) {
         this.name = name;
     }
