@@ -25,7 +25,7 @@ function editItem(target) {
         }
             
         xhttp.open('PUT',`http://127.0.0.1:8080/case/${target.name}`,true);
-        let formData = new FormData(document.forms.case_);
+        let formData = new FormData();
         formData.append("name", newValue);
         xhttp.send(formData);
         }
@@ -146,7 +146,7 @@ document.querySelector('.plus').onclick = () => {
         xhttp.onreadystatechange = function(){
             addNewCase(this, taskText);
         }
-        let formData = new FormData(document.forms.case_);
+        let formData = new FormData();
         formData.append("name", taskText);
 
         xhttp.open('POST','http://127.0.0.1:8080/case/',true);
