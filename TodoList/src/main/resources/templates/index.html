@@ -1,39 +1,35 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>ToDoList</title>
-<script src="../js/jquery-3.4.0.min.js"></script>
-   <script src="../js/main.js"></script>
+<html>
 
-    <link rel="stylesheet" type="text/css" href="/css/styles.css">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>JS Bin</title>
+    <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
-    <div id="case-form">
-        <form>
-            <h2>Добавление дела</h2>
-            <label>Название дела:</label>
-            <input type="text" name="name" value="">
-            <hr>
-            <button id="save-case">Сохранить</button>
-        </form>
-    </div>
-    <div id="case-edit-form">
-        <form>
-            <label>Введите новое название дела:</label>
-        </form>
-    </div>
- <h1>Список дел (<span th:text="${casesCount}"></span>)</h1>
-    <button id="show-add-case-form">Добавить дело</button>
-    <button id="delete_All">Очистить список дел</button>
-    <br><br>
-    <div id="toDo-list">
-        <div th:each="case_ : ${cases}">
-            <a href="#" class="case-link" th:attr="data-id=${case_.id}" th:text="${case_.name}"> </a> <br>
-            <button  th:id="|edit_${case_.id}|"  class = editButton th:onclick="|edit_(${case_.id})|">Редактировать</button>
-           <button th:id="|delete_${case_.id}|"   class=deleteButton th:onclick="|delete_(${case_.id})|">Удалить</button>
+
+    <div class="todo-container">
+        <div class="add-task">           
+            <input type="text">
+            <span class="plus">+</span>
+        </div>
+        <div class="tasks-content">
+            <span class="no-tasks-message">Нет задач для отображения</span>
+            <div class="task-box"></div>
         </div>
     </div>
-<!--    <p th:text="${someParameter}"></p>-->
+    <div class="task-stats">
+        <div class="tasks-count">
+            Задачи <span>0</span>
+        </div>
+        <div class="tasks-completed">
+            Выполнено <span>0</span>
+        </div>
+    </div>
+    <script src="../js/main.js"></script>
+
 </body>
+
 </html>

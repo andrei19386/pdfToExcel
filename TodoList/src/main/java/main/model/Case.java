@@ -11,7 +11,13 @@ public class Case {
     private int id;
 
     private String name;
-    private LocalDate date = LocalDate.now();
+
+    private boolean isCompleted = false;
+    private final LocalDate date = LocalDate.now();
+
+    public Case(String name) {
+        this.name = name;
+    }
 
     public int getId() {
         return id;
@@ -29,11 +35,24 @@ public class Case {
         this.name = name;
     }
 
+    public boolean isCompleted() {
+        return isCompleted;
+    }
+
+    public void setCompleted(boolean completed) {
+        isCompleted = completed;
+    }
+
     public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
+    public void inverse(){
+        if(this.isCompleted){
+            this.setCompleted(false);
+        } else {
+            this.setCompleted(true);
+        }
     }
+
 }

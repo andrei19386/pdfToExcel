@@ -1,160 +1,167 @@
-const put_ = function(id){
-                var data = $('#case-edit-form form').serialize();
-                 $('#case-edit-form').css('display', 'none');
-                $.ajax({
-                            method: 'PUT',
-                            url: '/cases/' + id,
-                            async: false,
-                            data: data,
-                            success: function(response)
-                            {
-                                location.reload();
-                            },
-                            error: function(response)
-                                        {
-                                            if(response.status == 404) {
-                                                alert('Дело не найдено!');
-                                            }
-                                        },
-                        });
+let storageMap = new Map();//Имитирует выделенную память под поставленные, но не завершенные задачи
+let completedMap = new Map();//Имитирует выделенную память под завершенные задачи
 
-            };
+showTasks();
 
-
-const delete_ = function(id){
-        $.ajax({
-                                   method: "DELETE",
-                                   url: '/cases/' + id,
-                                   success: function(response)
-                                   {
-                                       location.reload()
-                                    },
-                                    error: function(response)
-                                                {
-                                                    if(response.status == 404) {
-                                                        alert('Дело не найдено!');
-                                                    }
-                                                }
-
-                               });
-    }
-
-
- const edit_ = function(id) {
-            $.ajax({
-                        method: "GET",
-                        url: '/cases/' + id,
-                        success: function(response)
-                        {
-                             var code = '<input type="text" name="name" value="' + response.name + '">' +
-                            '<button id="edit-case" onclick = "put_(' + id + ')">Сохранить</button>';
-
-                             $('#case-edit-form form').append(code);
-                        },
-                        error: function(response)
-                        {
-                            if(response.status == 404) {
-                                alert('Дело не найдено!');
-                            }
-                        }
-                    });
-
-
-            $('#case-edit-form').css('display', 'flex');
-
+document.querySelector('.tasks-content').onclick = function(event){
+     let target = event.target;
+     switch(target.className){
+        case 'delete': deleteItem(target); 
+        break;
+        case 'edit': editItem(target);
+        break;
+        case 'task-box': changeCompletedStatus(target,storageMap);
      }
+     
+}
+
+function editItem(target) {
+    let newValue = prompt("Введите новое значение:");
+    localStorage.setItem(target.name, JSON.stringify([newValue, 0])); //put-запрос
+    target.parentElement.outerHTML = generateHTML(target.name, newValue);
+    storageMap.set(target.name, newValue);
+}
+
+function deleteItem(target) {
+    localStorage.removeItem(target.name); //delete-запрос
+    target.parentElement.remove();
+    storageMap.delete(target.name);
+    document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size;
+    if (storageMap.size + completedMap.size == 0) {
+        document.querySelector('.no-tasks-message').style.display = "flex";
+    }
+}
+
+function changeCompletedStatus(target,storageMap){
+    if(storageMap.has(target.firstElementChild.name)){
+            let value = storageMap.get(target.firstElementChild.name);
+            target.style.textDecoration = 'line-through';
+            target.children[0].style.display='none';
+            target.children[1].style.display='none';
+            storageMap.delete(target.firstElementChild.name);
+            completedMap.set(target.firstElementChild.name,value)         
+            localStorage.setItem(target.firstElementChild.name,JSON.stringify([value,1]));
+            document.querySelector('.tasks-completed').firstElementChild.innerHTML = completedMap.size;
+            document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size; 
+    } else {
+            let value = completedMap.get(target.firstElementChild.name);
+            target.style.textDecoration = 'none';
+            target.children[0].style.display='flex';
+            target.children[1].style.display='flex';
+            completedMap.delete(target.firstElementChild.name);
+            storageMap.set(target.firstElementChild.name,value)         
+            localStorage.setItem(target.firstElementChild.name,JSON.stringify([value,0]));
+            document.querySelector('.tasks-completed').firstElementChild.innerHTML = completedMap.size;
+            document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size; 
+    }
+}
 
 
-$(function(){
+function generateHTML(key,value){//Повторяющийся фрагмент генерации HTML-кода при добавлении, редактировании и отображении todolist
+    return `<span class="task-box" id=task_${key}>
+    ${value}
+    <button class="delete" name=${key}>delete</button><button class="edit" name=${key}>edit</button></span>`;
+}
 
-    //Show adding case form
-    $('#show-add-case-form').click(function(){
-        $('#case-form').css('display', 'flex');
-    });
 
-    //Closing adding case form
-    $('#case-form').click(function(event){
-        if(event.target === this) {
-            $(this).css('display', 'none');
+
+document.querySelector('.plus').onclick = () => {
+    let taskText = document.querySelector('.add-task').firstElementChild.value;
+    if(taskText != ''){
+        let currentKey = +getMaxKey(storageMap) + 1;
+        localStorage.setItem(currentKey,JSON.stringify([taskText,0]));   //post-запрос
+        document.querySelector('.no-tasks-message').style.display = "none";
+
+
+        document.querySelector('.tasks-content').innerHTML += generateHTML(currentKey,taskText);
+            storageMap.set(`${currentKey}`,taskText);
+            document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size;
+            document.querySelector('.add-task').firstElementChild.value="";
+    } else {
+        alert("Поле ввода не может быть пустым!")
+    }
+}
+
+function getData(data){
+    console.log(data)
+}
+
+
+function showTasks(){
+        let xhttp = new XMLHttpRequest();
+        xhttp.withCredentials = true;
+
+        xhttp.onreadystatechange = function(){
+            if(this.readyState == 4 && this.status == 200){
+                getData(this.responseText);
+            }
         }
-    });
 
-    //Closing edit case form
-        $('#case-edit-form').click(function(event){
-            if(event.target === this) {
-                $(this).css('display', 'none');
-            }
-        });
+        xhttp.open('GET','http://127.0.0.1:8080/',true);
 
-    //Getting case
-    $(document).on('click', '.case-link', function(){
-        var link = $(this);
-        var caseId = link.data('id');
-        $.ajax({
-            method: "GET",
-            url: '/cases/' + caseId,
-            success: function(response)
-            {
-                var date = new Date(response.date);
-                var month = date.getMonth() + 1;
-                var year = date.getFullYear();
-                var day = date.getDate();
-                if (month < 10) {
-                    if(day < 10){
-                        var code = '<span> Дата добавления: 0' + day + '.0' + month + '.' + year + '</span>';
-                    } else {
-                        var code = '<span> Дата добавления: ' + day + '.0' + month + '.' + year + '</span>';
-                    }
+        xhttp.send();
 
-                } else {
-                    if(day < 10){
-                         var code = '<span> Дата добавления: 0' + day + '.' + month + '.' + year + '</span>';
-                     } else {
-                         var code = '<span> Дата добавления: ' + day + '.' + month + '.' + year + '</span>';
-                     }
-                }
-                link.parent().append(code);
-            },
-            error: function(response)
-            {
-                if(response.status == 404) {
-                    alert('Дело не найдено!');
-                }
-            }
-        });
-        return false;
-    });
+     
+     storageMap = getMapFromLocalStorage('0');//get-запросы
+     completedMap = getMapFromLocalStorage('1');
 
-    //Adding case
-    $('#save-case').click(function()
-    {
-        var data = $('#case-form form').serialize();
-        $.ajax({
-            method: "POST",
-            async: false,
-            url: '/cases/',
-            data: data,
-            success: function(response)
-            {
-                $('#case-form').css('display', 'none');
-                location.reload();
-            }
-        });
+    clearTaskBoxes();
+    if(storageMap.size + completedMap.size == 0){
+        document.querySelector('.no-tasks-message').style.display = "flex";
+    } else {
+        document.querySelector('.no-tasks-message').style.display = "none";
+        formHTMLTaskBox(storageMap);
+    }
+    
+    document.querySelector('.tasks-completed').firstElementChild.innerHTML = completedMap.size;
+    document.querySelector('.tasks-count').firstElementChild.innerHTML = storageMap.size; 
 
-        return false;
-    });
+}
 
-    //deleting All cases
-    $('#delete_All').click(function() {
-    $.ajax({
-                method: "DELETE",
-                url: '/cases/',
-                success: function(response)
-                {
-                    location.reload()
-                 }
-            });
-            return false;
-    });
+//Очистка фрагментов, чтобы при перезагрузке страницы не было добавления дублирующих записей
+function clearTaskBoxes() {
+    let elements = document.querySelectorAll('.task-box');
+    for (let element of elements) {
+        element.remove();
+    }
+}
 
-});
+//Формирует tasks-content
+function formHTMLTaskBox(storageMap) {
+    for (let entry of storageMap) {
+        document.querySelector('.tasks-content').innerHTML += generateHTML(entry[0],entry[1]);
+    }
+    for (let entry of completedMap) {
+        document.querySelector('.tasks-content').innerHTML += generateHTML(entry[0],entry[1]);
+        let target = document.querySelector(`#task_${entry[0]}`);
+        target.style.textDecoration = 'line-through';
+        target.children[0].style.display='none';
+        target.children[1].style.display='none';
+    }
+}
+
+//Определяет максимальный ключ в Map. Это нужно, чтобы избежать повторения ключей 
+//при добавлении новых элементов (новый добавляется увеличением максимального занчения ключа на 1)
+function getMaxKey(storageMap){
+    let max = 0;
+    for(let entry of storageMap){
+        if(entry[0]>max){
+            max = entry[0];
+        }
+    }
+    return max;
+}
+
+//Загружает из localStorage данные в списки задач storageMap и completedMap
+//id - идентификатор статуса задачи в localStorage: 0 - не выполнена, 1 - выполнена
+function getMapFromLocalStorage(id){
+    let map = new Map();
+    for(let i=0; i < localStorage.length;i++){
+        let item = JSON.parse(localStorage.getItem(localStorage.key(i)));
+        if(item[1]==id){
+            map.set(localStorage.key(i),item[0]);
+        }
+    }
+    return map;
+}
+
