@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,6 +13,10 @@ public class Main {
     public static final String OASIS = "LAYOUT SYSTEM OASIS\n";
     public static final String MAX_RESULTS = "DRC MAXIMUM RESULTS ALL\n";
     public static final String MAX_VERTEX = "DRC MAXIMUM VERTEX ALL\n";
+
+    private static List<Element> elements = new ArrayList<>();
+
+    private static List<String> namesToBeIgnored = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
         if(args.length > 0 && args[0].equals("1")){
@@ -47,9 +52,7 @@ public class Main {
         if(!lightCDs.isEmpty()){
             bufferedWriter.write("Tonality = glass\n");
             for(Element element : lightCDs){
-                double xCenter = getCenter(element.getxLeft(),element.getxRight());
-                double yCenter = getCenter(element.getyBottom(),element.getyTop());
-                String line = getLine(xCenter,yCenter, element);
+                String line = getLine(element);
                 bufferedWriter.write(line);
             }
         }
@@ -59,9 +62,7 @@ public class Main {
         if(!darkCDs.isEmpty()){
             bufferedWriter.write("Tonality = chrome\n");
             for(Element element : darkCDs){
-                double xCenter = getCenter(element.getxLeft(),element.getxRight());
-                double yCenter = getCenter(element.getyBottom(),element.getyTop());
-                String line = getLine(xCenter,yCenter,element);
+                String line = getLine(element);
                 bufferedWriter.write(line);
             }
         }
@@ -70,9 +71,7 @@ public class Main {
         if(!lightMLTs.isEmpty()){
             bufferedWriter.write("Tonality = glass\n");
             for(Element element : lightMLTs){
-                double xCenter = getCenter(element.getxLeft(),element.getxRight());
-                double yCenter = getCenter(element.getyBottom(),element.getyTop());
-                String line = getLine(xCenter,yCenter,element);
+                String line = getLine(element);
                 bufferedWriter.write(line);
             }
         }
@@ -82,9 +81,7 @@ public class Main {
         if(!darkMLTs.isEmpty()){
             bufferedWriter.write("Tonality = chrome\n");
             for(Element element : darkMLTs){
-                double xCenter = getCenter(element.getxLeft(),element.getxRight());
-                double yCenter = getCenter(element.getyBottom(),element.getyTop());
-                String line = getLine(xCenter,yCenter,element);
+                String line = getLine(element);
                 bufferedWriter.write(line);
             }
         }
@@ -92,28 +89,106 @@ public class Main {
         bufferedWriter.close();
     }
 
-    private static String getLine(double xCenter, double yCenter, Element element) {
-        //TODO: write a method
+    private static String getLine(Element element) {
+        double xCenter = getCenter(element.getxLeft(),element.getxRight());
+        double yCenter = getCenter(element.getyBottom(),element.getyTop());
+        String format="";
+        switch(ProjectInfo.getOrderType()) {
+        //TODO: Проработать альтернативные варианты
+            case "1": if(element.getName().equals("CD")) {
+                            format = "- CD%d: (%f, %f);\n";
+                            return String.format(format,element.getNumber(),xCenter,yCenter);
+                         } else {
+                            format = "(%f, %f),";
+                            return String.format(format,xCenter,yCenter);
+                        }
+        }
         return null;
     }
 
     private static double getCenter(double little, double big) {
         double step = 1;
+        boolean isEven = false;
         while(true) {
             double center = 0.5 * (little + big);
             int centerStep = (int) (center / step);
             if(centerStep*step > little && centerStep*step < big){
                 return centerStep*step;
             } else {
-                step /= 2;
-                //FixMe: Продумать изменение шага
+                step = changeStep(step,isEven);
+                isEven = changeEven(isEven);
             }
 
         }
     }
 
+    private static boolean changeEven(boolean isEven){
+        if(isEven){
+            return false;
+        }
+           return true;
+    }
+
+    private static double changeStep(double step, boolean isEven){
+        if(isEven) {return step/5;}
+        return step/2;
+    }
+
     private static List<Element> readElements() {
-        //TODO: make a method
+        for(int maskNumber = 1; maskNumber <= ProjectInfo.getNumberOfMasks(); maskNumber++){
+            File file = new File( "log_calibri_" + maskNumber);
+            FileReader fr = null;
+            try {
+                fr = new FileReader(file);
+                BufferedReader reader = new BufferedReader(fr);
+                String line = reader.readLine();
+
+                readFile(maskNumber, reader, line);
+                reader.close();
+                fr.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return null;
+    }
+
+    private static void readFile(int maskNumber, BufferedReader reader, String line) throws IOException {
+        while (line !=null){
+            if(line.contains("DRC PRINT AREA") && line.contains("=")){
+                line = line.replaceAll("DRC PRINT AREA","")
+                        .replaceAll("=","");
+                String[] words = line.trim().split("[ ]");
+                if(Double.parseDouble(words[1]) < 1e-10){
+                    namesToBeIgnored.add(words[0]);
+                }
+            }
+            if(line.contains("DRC PRINT EXTENT") && line.contains("=")){
+                line = line.replaceAll("DRC PRINT EXTENT","")
+                        .replaceAll("=","");
+                Element element = getElement(line, maskNumber);
+                if(element!=null) elements.add(element);
+            }
+            line = reader.readLine();
+        }
+    }
+
+    private static Element getElement(String line, int maskNumber) {
+        String[] words = line.strip().split("[ ]");
+        if(!namesToBeIgnored.contains(words[0])){
+            Element element = new Element();
+            element.setName(words[0].contains("CD")?"CD":"MLT");
+            element.setType(words[0].contains("light")?"light":"dark");
+            element.setMaskNumber(maskNumber);
+            String toNumber = words[0].replaceAll("[a-zA-z]+","");
+            element.setNumber(Integer.parseInt(toNumber));
+            element.setxLeft(Double.parseDouble(words[1]));
+            element.setyBottom(Double.parseDouble(words[2]));
+            element.setxRight(Double.parseDouble(words[3]));
+            element.setyTop(Double.parseDouble(words[4]));
+            return element;
+        }
         return null;
     }
 
@@ -282,6 +357,7 @@ public class Main {
             ProjectInfo.setDarkFieldMLT(366);
         }
     }
+
 }
 
 
