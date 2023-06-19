@@ -276,21 +276,21 @@ public class Main {
         bufferedWriter.write(MAX_RESULTS);
         bufferedWriter.write(String.format(LAYER,"RES",ProjectInfo.getLayerOut()));
         lightFieldCDRulesGenerate(bufferedWriter, ProjectInfo.getLightFieldCD(),
-                "CD","%s%d { %s%d AND RES }\n");
+                "CD","%s%d { %s%d AND RES }\n",1);
         lightFieldCDRulesGenerate(bufferedWriter, ProjectInfo.getDarkFieldCD(),
-                "CD","%s%d { %s%d NOT RES }\n");
+                "CD","%s%d { %s%d NOT RES }\n",101);
         lightFieldCDRulesGenerate(bufferedWriter, ProjectInfo.getLightFieldMLT(),
-                "MLT","%s%d { %s%d NOT RES }\n");
+                "MLT","%s%d { %s%d NOT RES }\n",201);
         lightFieldCDRulesGenerate(bufferedWriter, ProjectInfo.getDarkFieldMLT(),
-                "MLT","%s%d { %s%d NOT RES }\n");
+                "MLT","%s%d { %s%d NOT RES }\n",301);
         bufferedWriter.flush();
         bufferedWriter.close();
     }
 
     private static void lightFieldCDRulesGenerate(BufferedWriter bufferedWriter, int layer, String type,
-                                                  String format) throws IOException {
+                                                  String format, int offSet) throws IOException {
         int producedLayer = layer * 100;
-        for(int j = 1; j <= 100; j++){
+        for(int j = offSet; j < 100+offSet; j++){
             bufferedWriter.write(String.format("LAYER MAP %d DATATYPE %d %d\n", layer,j, producedLayer +j));
             bufferedWriter.write(String.format(LAYER,type+j, producedLayer +j));
             bufferedWriter.write(String.format(CHECK_MAP,type+j, producedLayer +j));
