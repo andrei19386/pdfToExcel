@@ -94,14 +94,17 @@ public class Main {
         double yCenter = getCenter(element.getyBottom(),element.getyTop());
         String format="";
         switch(ProjectInfo.getOrderType()) {
-        //TODO: Проработать альтернативные варианты
             case "1": if(element.getName().equals("CD")) {
                             format = "- CD%d: (%f, %f);\n";
                             return String.format(format,element.getNumber(),xCenter,yCenter);
                          } else {
-                            format = "(%f, %f),";
+                            format = "(%f, %f),\n";
                             return String.format(format,xCenter,yCenter);
                         }
+            case "2": if(element.getName().equals("CD")){
+                format = " - КЛР %d: x = %f мм, y = %f мм;\n";
+                return String.format(format,element.getNumber(),xCenter/1000,yCenter/1000);
+            }
         }
         return null;
     }
