@@ -242,8 +242,10 @@ public class Main {
             throws IOException {
         bufferedWriter.write(String.format(LAYER, feaureName, feachureGDSNumber));
         bufferedWriter.write("DRC PRINT AREA " + feaureName);
+        bufferedWriter.write("\n");
         bufferedWriter.write("DRC PRINT EXTENT " + feaureName);
-        bufferedWriter.write(String.format("%s {COPY %s }", feaureName, feaureName));
+        bufferedWriter.write("\n");
+        bufferedWriter.write(String.format("%s {COPY %s }\n", feaureName, feaureName));
     }
 
 
