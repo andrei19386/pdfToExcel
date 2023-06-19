@@ -1,4 +1,6 @@
 import java.io.*;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,12 +30,41 @@ public class Main {
         if(args.length > 0 && args[0].equals("3")){
             optionThird();
         }
+        if(args.length==0){
+            generateExecutionScript();
+        }
+    }
+
+    private static void generateExecutionScript() throws IOException {
+        File file = new File("script_exec.sh");
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
+        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
+        bufferedWriter.write("echo \"$(date): started\" >> log.txt &&\n");
+        bufferedWriter.write("java -jar GenerateOrder-1.0-SNAPSHOT.jar 1 &&\n");
+        bufferedWriter.write("echo \"$(date): first stage script generated\" >> log.txt &&\n");
+        for(int i = 1; i <= ProjectInfo.getNumberOfMasks();i++) {
+            bufferedWriter.write("calibre -drc " + ProjectInfo.getProjectName()+"_firstSTAGE"+i+".SVRF &&\n");
+            bufferedWriter.write(String.format( "echo \"$(date): first stage for mask %d done\" >> log.txt &&\n",
+                    i));
+        }
+        bufferedWriter.write("java -jar GenerateOrder-1.0-SNAPSHOT.jar 2 &&\n");
+        bufferedWriter.write("echo \"$(date): second stage script generated\" >> log.txt &&\n");
+        for(int i = 1; i <= ProjectInfo.getNumberOfMasks();i++) {
+            bufferedWriter.write("calibre -drc " + ProjectInfo.getProjectName()+"_secondSTAGE"+i+".SVRF >" +
+                    "log_calibri_" + i + "&&\n");
+            bufferedWriter.write(String.format( "echo \"$(date): second stage for mask %d done\" >> log.txt &&\n",
+                    i));
+        }
+        bufferedWriter.write("java -jar GenerateOrder-1.0-SNAPSHOT.jar 3 &&\n");
+        bufferedWriter.write("echo \"$(date): third stage script generated\" >> log.txt\n");
+        bufferedWriter.flush();
+        bufferedWriter.close();
+        file.setExecutable(true,false);
     }
 
     private static void optionThird() throws IOException {//Генерация варианта для вставки в заказ
-        List<Element> elements;
         readProperties();
-        elements = readElements();
+        readElements();
         for(int maskNumber = 1; maskNumber <= ProjectInfo.getNumberOfMasks(); maskNumber++) {
             generateFileResultForMask(elements, maskNumber);
         }
@@ -93,17 +124,21 @@ public class Main {
         double xCenter = getCenter(element.getxLeft(),element.getxRight());
         double yCenter = getCenter(element.getyBottom(),element.getyTop());
         String format="";
+        NumberFormat numberFormat = new DecimalFormat("#.#####");
         switch(ProjectInfo.getOrderType()) {
             case "1": if(element.getName().equals("CD")) {
-                            format = "- CD%d: (%f, %f);\n";
-                            return String.format(format,element.getNumber(),xCenter,yCenter);
+                            format = "- CD%d: (%s, %s);\n";
+                            return String.format(format,element.getNumber(),numberFormat.format(xCenter),
+                                    numberFormat.format(yCenter));
                          } else {
-                            format = "(%f, %f),\n";
-                            return String.format(format,xCenter,yCenter);
+                            format = "(%s, %s),\n";
+                            return String.format(format,numberFormat.format(xCenter),
+                                    numberFormat.format(yCenter));
                         }
             case "2": if(element.getName().equals("CD")){
-                format = " - КЛР %d: x = %f мм, y = %f мм;\n";
-                return String.format(format,element.getNumber(),xCenter/1000,yCenter/1000);
+                format = " - КЛР %d: x = %s мм, y = %s мм;\n";
+                return String.format(format,element.getNumber(),numberFormat.format(xCenter/1000),
+                        numberFormat.format(yCenter/1000));
             }
         }
         return null;
@@ -117,11 +152,14 @@ public class Main {
             int centerStep = (int) (center / step);
             if(centerStep*step > little && centerStep*step < big){
                 return centerStep*step;
-            } else {
-                step = changeStep(step,isEven);
-                isEven = changeEven(isEven);
+            } else if((centerStep+1)*step > little && (centerStep+1)*step < big) {
+                return (centerStep+1)*step;
+            } else if((centerStep-1)*step > little && (centerStep-1)*step < big) {
+                return (centerStep-1)*step;
+            }else {
+                    step = changeStep(step,isEven);
+                    isEven = changeEven(isEven);
             }
-
         }
     }
 
@@ -137,7 +175,7 @@ public class Main {
         return step/2;
     }
 
-    private static List<Element> readElements() {
+    private static void readElements() {
         for(int maskNumber = 1; maskNumber <= ProjectInfo.getNumberOfMasks(); maskNumber++){
             File file = new File( "log_calibri_" + maskNumber);
             FileReader fr = null;
@@ -153,15 +191,13 @@ public class Main {
                 e.printStackTrace();
             }
         }
-
-        return null;
     }
 
     private static void readFile(int maskNumber, BufferedReader reader, String line) throws IOException {
         while (line !=null){
             if(line.contains("DRC PRINT AREA") && line.contains("=")){
                 line = line.replaceAll("DRC PRINT AREA","")
-                        .replaceAll("=","");
+                        .replaceAll("=","").replaceAll("[ ]+"," ");
                 String[] words = line.trim().split("[ ]");
                 if(Double.parseDouble(words[1]) < 1e-10){
                     namesToBeIgnored.add(words[0]);
@@ -169,7 +205,7 @@ public class Main {
             }
             if(line.contains("DRC PRINT EXTENT") && line.contains("=")){
                 line = line.replaceAll("DRC PRINT EXTENT","")
-                        .replaceAll("=","");
+                        .replaceAll("=","").replaceAll("[ ]+"," ");
                 Element element = getElement(line, maskNumber);
                 if(element!=null) elements.add(element);
             }
@@ -178,7 +214,7 @@ public class Main {
     }
 
     private static Element getElement(String line, int maskNumber) {
-        String[] words = line.strip().split("[ ]");
+        String[] words = line.trim().split("[ ]");
         if(!namesToBeIgnored.contains(words[0])){
             Element element = new Element();
             element.setName(words[0].contains("CD")?"CD":"MLT");
