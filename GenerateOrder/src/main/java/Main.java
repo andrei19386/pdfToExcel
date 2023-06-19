@@ -36,6 +36,7 @@ public class Main {
     }
 
     private static void generateExecutionScript() throws IOException {
+        readProperties();
         File file = new File("script_exec.sh");
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
