@@ -316,20 +316,20 @@ public class Main {
         bufferedWriter.write(MAX_VERTEX);
         bufferedWriter.write(MAX_RESULTS);
         bufferedWriter.write(String.format(LAYER,"RES",ProjectInfo.getLayerOut()));
-        lightFieldCDRulesGenerate(bufferedWriter, ProjectInfo.getLightFieldCD(),
+        rulesGenerate(bufferedWriter, ProjectInfo.getLightFieldCD(),
                 "lightFieldCD","%s%d { %s%d AND RES }\n");
-        lightFieldCDRulesGenerate(bufferedWriter, ProjectInfo.getDarkFieldCD(),
+        rulesGenerate(bufferedWriter, ProjectInfo.getDarkFieldCD(),
                 "darkFieldCD","%s%d { %s%d NOT RES }\n");
-        lightFieldCDRulesGenerate(bufferedWriter, ProjectInfo.getLightFieldMLT(),
-                "lightFieldMLT","%s%d { %s%d NOT RES }\n");
-        lightFieldCDRulesGenerate(bufferedWriter, ProjectInfo.getDarkFieldMLT(),
+        rulesGenerate(bufferedWriter, ProjectInfo.getLightFieldMLT(),
+                "lightFieldMLT","%s%d { %s%d AND RES }\n");
+        rulesGenerate(bufferedWriter, ProjectInfo.getDarkFieldMLT(),
                 "darkFieldMLT","%s%d { %s%d NOT RES }\n");
         bufferedWriter.flush();
         bufferedWriter.close();
     }
 
-    private static void lightFieldCDRulesGenerate(BufferedWriter bufferedWriter, int layer, String type,
-                                                  String format) throws IOException {
+    private static void rulesGenerate(BufferedWriter bufferedWriter, int layer, String type,
+                                      String format) throws IOException {
         int producedLayer = layer * 100;
         for(int j = 1; j <= 100; j++){
             bufferedWriter.write(String.format("LAYER MAP %d DATATYPE %d %d\n", layer,j, producedLayer +j));
