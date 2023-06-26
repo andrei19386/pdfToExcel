@@ -18,7 +18,7 @@ public class Main {
 
     private static List<Element> elements = new ArrayList<>();
 
-    private static List<String> namesToBeIgnored = new ArrayList<>();
+
 
     public static void main(String[] args) throws IOException {
         if(args.length > 0 && args[0].equals("1")){
@@ -180,6 +180,7 @@ public class Main {
         for(int maskNumber = 1; maskNumber <= ProjectInfo.getNumberOfMasks(); maskNumber++){
             File file = new File( "log_calibri_" + maskNumber);
             FileReader fr = null;
+
             try {
                 fr = new FileReader(file);
                 BufferedReader reader = new BufferedReader(fr);
@@ -195,6 +196,7 @@ public class Main {
     }
 
     private static void readFile(int maskNumber, BufferedReader reader, String line) throws IOException {
+        List<String> namesToBeIgnored = new ArrayList<>();
         while (line !=null){
             if(line.contains("DRC PRINT AREA") && line.contains("=")){
                 line = line.replaceAll("DRC PRINT AREA","")
@@ -207,14 +209,14 @@ public class Main {
             if(line.contains("DRC PRINT EXTENT") && line.contains("=")){
                 line = line.replaceAll("DRC PRINT EXTENT","")
                         .replaceAll("=","").replaceAll("[ ]+"," ");
-                Element element = getElement(line, maskNumber);
+                Element element = getElement(line, maskNumber,namesToBeIgnored);
                 if(element!=null) elements.add(element);
             }
             line = reader.readLine();
         }
     }
 
-    private static Element getElement(String line, int maskNumber) {
+    private static Element getElement(String line, int maskNumber,List<String> namesToBeIgnored) {
         String[] words = line.trim().split("[ ]");
         if(!namesToBeIgnored.contains(words[0])){
             Element element = new Element();
@@ -315,21 +317,21 @@ public class Main {
         bufferedWriter.write(MAX_RESULTS);
         bufferedWriter.write(String.format(LAYER,"RES",ProjectInfo.getLayerOut()));
         lightFieldCDRulesGenerate(bufferedWriter, ProjectInfo.getLightFieldCD(),
-                "CD","%s%d { %s%d AND RES }\n",1);
+                "lightFieldCD","%s%d { %s%d AND RES }\n");
         lightFieldCDRulesGenerate(bufferedWriter, ProjectInfo.getDarkFieldCD(),
-                "CD","%s%d { %s%d NOT RES }\n",101);
+                "darkFieldCD","%s%d { %s%d NOT RES }\n");
         lightFieldCDRulesGenerate(bufferedWriter, ProjectInfo.getLightFieldMLT(),
-                "MLT","%s%d { %s%d NOT RES }\n",201);
+                "lightFieldMLT","%s%d { %s%d NOT RES }\n");
         lightFieldCDRulesGenerate(bufferedWriter, ProjectInfo.getDarkFieldMLT(),
-                "MLT","%s%d { %s%d NOT RES }\n",301);
+                "darkFieldMLT","%s%d { %s%d NOT RES }\n");
         bufferedWriter.flush();
         bufferedWriter.close();
     }
 
     private static void lightFieldCDRulesGenerate(BufferedWriter bufferedWriter, int layer, String type,
-                                                  String format, int offSet) throws IOException {
+                                                  String format) throws IOException {
         int producedLayer = layer * 100;
-        for(int j = offSet; j < 100+offSet; j++){
+        for(int j = 1; j <= 100; j++){
             bufferedWriter.write(String.format("LAYER MAP %d DATATYPE %d %d\n", layer,j, producedLayer +j));
             bufferedWriter.write(String.format(LAYER,type+j, producedLayer +j));
             bufferedWriter.write(String.format(CHECK_MAP,type+j, producedLayer +j));
