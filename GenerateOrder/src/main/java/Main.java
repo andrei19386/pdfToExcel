@@ -41,14 +41,14 @@ public class Main {
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
         bufferedWriter.write("echo \"$(date): started\" >> log.txt &&\n");
-        bufferedWriter.write("java -jar GenerateOrder-1.0-SNAPSHOT.jar 1 &&\n");
+        bufferedWriter.write("java -jar GenerateOrder-1.1-SNAPSHOT.jar 1 &&\n");
         bufferedWriter.write("echo \"$(date): first stage script generated\" >> log.txt &&\n");
         for(int i = 1; i <= ProjectInfo.getNumberOfMasks();i++) {
             bufferedWriter.write("calibre -drc " + ProjectInfo.getProjectName()+"_firstSTAGE"+i+".SVRF &&\n");
             bufferedWriter.write(String.format( "echo \"$(date): first stage for mask %d done\" >> log.txt &&\n",
                     i));
         }
-        bufferedWriter.write("java -jar GenerateOrder-1.0-SNAPSHOT.jar 2 &&\n");
+        bufferedWriter.write("java -jar GenerateOrder-1.1-SNAPSHOT.jar 2 &&\n");
         bufferedWriter.write("echo \"$(date): second stage script generated\" >> log.txt &&\n");
         for(int i = 1; i <= ProjectInfo.getNumberOfMasks();i++) {
             bufferedWriter.write("calibre -drc " + ProjectInfo.getProjectName()+"_secondSTAGE"+i+".SVRF >" +
@@ -56,7 +56,7 @@ public class Main {
             bufferedWriter.write(String.format( "echo \"$(date): second stage for mask %d done\" >> log.txt &&\n",
                     i));
         }
-        bufferedWriter.write("java -jar GenerateOrder-1.0-SNAPSHOT.jar 3 &&\n");
+        bufferedWriter.write("java -jar GenerateOrder-1.1-SNAPSHOT.jar 3 &&\n");
         bufferedWriter.write("echo \"$(date): third stage script generated\" >> log.txt\n");
         bufferedWriter.flush();
         bufferedWriter.close();
