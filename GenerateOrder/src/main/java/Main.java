@@ -140,6 +140,8 @@ public class Main {
                 format = " - КЛР %d: x = %s мм, y = %s мм;\n";
                 return String.format(format,element.getNumber(),numberFormat.format(xCenter/1000),
                         numberFormat.format(yCenter/1000));
+            } else {
+                return "";
             }
         }
         return null;
