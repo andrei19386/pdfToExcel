@@ -1,8 +1,6 @@
-
-import org.apache.velocity.*;
-import org.apache.velocity.app.Velocity;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
-
 
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
