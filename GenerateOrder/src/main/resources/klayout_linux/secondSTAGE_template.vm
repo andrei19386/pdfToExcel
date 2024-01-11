@@ -31,21 +31,21 @@
  #set( $line = "darkMLT" + $i  + " = inp.input(" + $darkMLT + "," + $i + ")" )
  $line
 
- #set( $line = "log(" + '"' + "area= #{" + "lightCD" + $i + ".area}" + '"' + ")" )
+ #set( $line = "log(" + '"' + "lightCD" + $i + " area= #{" + "lightCD" + $i + ".area}" + '"' + ")" )
  $line
- #set( $line = "log(" + '"' + "bbox= #{" + "lightCD" + $i + ".bbox}" + '"' + ")" )
+ #set( $line = "log(" + '"' + "lightCD" + $i + " bbox= #{" + "lightCD" + $i + ".bbox}" + '"' + ")" )
  $line
- #set( $line = "log(" + '"' + "area= #{" + "darkCD" + $i + ".area}" + '"' + ")" )
+ #set( $line = "log(" + '"' + "darkCD" + $i + " area= #{" + "darkCD" + $i + ".area}" + '"' + ")" )
  $line
- #set( $line = "log(" + '"' + "bbox= #{" + "darkCD" + $i + ".bbox}" + '"' + ")" )
+ #set( $line = "log(" + '"' + "darkCD" + $i + " bbox= #{" + "darkCD" + $i + ".bbox}" + '"' + ")" )
  $line
- #set( $line = "log(" + '"' + "area= #{" + "lightMLT" + $i + ".area}" + '"' + ")" )
+ #set( $line = "log(" + '"' + "lightMLT" + $i + " area= #{" + "lightMLT" + $i + ".area}" + '"' + ")" )
  $line
- #set( $line = "log(" + '"' + "bbox= #{" + "lightMLT" + $i + ".bbox}" + '"' + ")" )
+ #set( $line = "log(" + '"' + "lightMLT" + $i + " bbox= #{" + "lightMLT" + $i + ".bbox}" + '"' + ")" )
  $line
- #set( $line = "log(" + '"' + "area= #{" + "darkMLT" + $i + ".area}" + '"' + ")" )
+ #set( $line = "log(" + '"' + "darkMLT" + $i + " area= #{" + "darkMLT" + $i + ".area}" + '"' + ")" )
  $line
- #set( $line = "log(" + '"' + "bbox= #{" + "darkMLT" + $i + ".bbox}" + '"' + ")" )
+ #set( $line = "log(" + '"' + "darkMLT" + $i + " bbox= #{" + "darkMLT" + $i + ".bbox}" + '"' + ")" )
  $line
  #end
 </text>

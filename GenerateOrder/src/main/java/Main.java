@@ -10,15 +10,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Main {
-    public static final String PATH = "LAYOUT PATH \"./%s\"\n";
-    public static final String PRIMARY = "LAYOUT PRIMARY \"%s\"\n";
-    public static final String RESULTS_DRC ="DRC RESULTS DATABASE \"./%s\" OASIS\n";
+
     public static final String LAYER = "LAYER %s %d\n";
     public static final String CHECK_MAP = "DRC CHECK MAP %s %d\n";
-    public static final String RENAME_CELL = "LAYOUT RENAME CELL \"%s\" \"%s\"\n";
-    public static final String OASIS = "LAYOUT SYSTEM OASIS\n";
-    public static final String MAX_RESULTS = "DRC MAXIMUM RESULTS ALL\n";
-    public static final String MAX_VERTEX = "DRC MAXIMUM VERTEX ALL\n";
+
 
     private static List<Element> elements = new ArrayList<>();
 
@@ -272,15 +267,18 @@ public class Main {
 
     private static void readElements() {
         for(int maskNumber = 1; maskNumber <= ProjectInfo.getNumberOfMasks(); maskNumber++){
-            File file = new File( "log_calibri_" + maskNumber);
+            File file = new File( ProjectInfo.getProjectName() + "_log_" + maskNumber + ".txt");
             FileReader fr = null;
 
             try {
                 fr = new FileReader(file);
                 BufferedReader reader = new BufferedReader(fr);
                 String line = reader.readLine();
-
-                readFile(maskNumber, reader, line);
+                if(isWrittingToOutStrim) {
+                    readFile(maskNumber, reader, line);
+                } else {
+                    readLogFile(maskNumber,reader,line);
+                }
                 reader.close();
                 fr.close();
             } catch (IOException e) {
@@ -310,6 +308,32 @@ public class Main {
         }
     }
 
+    private static void readLogFile(int maskNumber, BufferedReader reader, String line) throws IOException {
+        List<String> namesToBeIgnored = new ArrayList<>();
+        while (line !=null){
+            if(line.contains("area") && line.contains("=")){
+                line = line.replaceAll("area","")
+                        .replaceAll("=","").replaceAll("[ ]+"," ");
+                String[] words = line.trim().split("[ ]");
+                if(Double.parseDouble(words[1]) < 1e-10){
+                    namesToBeIgnored.add(words[0]);
+                }
+            }
+            if(line.contains("bbox") && line.contains("=")){
+                line = line.replaceAll("bbox","")
+                        .replaceAll("=","").replaceAll("[ ]+"," ");
+                Element element = null;
+                if(isWrittingToOutStrim) {
+                    element = getElement(line, maskNumber, namesToBeIgnored);
+                } else {
+                    element = getElementVer2(line,maskNumber,namesToBeIgnored);
+                }
+                if(element!=null) elements.add(element);
+            }
+            line = reader.readLine();
+        }
+    }
+
     private static Element getElement(String line, int maskNumber,List<String> namesToBeIgnored) {
         String[] words = line.trim().split("[ ]");
         if(!namesToBeIgnored.contains(words[0])){
@@ -328,6 +352,27 @@ public class Main {
         return null;
     }
 
+    private static Element getElementVer2(String line, int maskNumber,List<String> namesToBeIgnored) {
+        String[] words = line.trim().split("[ ]");
+        if(!namesToBeIgnored.contains(words[0])){
+            Element element = new Element();
+            element.setName(words[0].contains("CD")?"CD":"MLT");
+            element.setType(words[0].contains("light")?"light":"dark");
+            element.setMaskNumber(maskNumber);
+            String toNumber = words[0].replaceAll("[a-zA-z]+","");
+            element.setNumber(Integer.parseInt(toNumber));
+            String[] words1 = words[1].replaceAll(";",",")
+                    .replaceAll("[(]","").replaceAll("[)]","")
+                    .split(",");
+            element.setxLeft(Double.parseDouble(words1[0]));
+            element.setyBottom(Double.parseDouble(words1[1]));
+            element.setxRight(Double.parseDouble(words1[2]));
+            element.setyTop(Double.parseDouble(words1[3]));
+            return element;
+        }
+        return null;
+    }
+
     private static void optionSecond() throws Exception {//Генерация файла с координатами прямоугольников
         readProperties();
         for(int i = 1; i <= ProjectInfo.getNumberOfMasks();i++){
@@ -340,7 +385,7 @@ public class Main {
     }
 
     private static void generateSecondStageSVRF(int i) throws Exception {
-        File file = new File(ProjectInfo.getProjectName()+"_secondSTAGE"+i+".SVRF");
+        File file = new File(ProjectInfo.getProjectName()+"_secondSTAGE"+i+extension);
 
 
         Template template = getTemplateScript(folder +  System.getProperty("file.separator")
@@ -387,7 +432,7 @@ public class Main {
 
     private static void generateFirstStageSVRF(int i) throws Exception {
 
-        File file = new File(ProjectInfo.getProjectName()+"_firstSTAGE"+i+".SVRF");
+        File file = new File(ProjectInfo.getProjectName()+"_firstSTAGE" + i + extension);
         Template template = getTemplateScript(folder +  System.getProperty("file.separator")
                 + "firstSTAGE_template.vm");
         VelocityContext velocityContext = new VelocityContext();
