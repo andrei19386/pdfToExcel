@@ -1,0 +1,48 @@
+LAYOUT PATH "./$fileName"
+LAYOUT RENAME CELL "$primary" "TOP"
+LAYOUT PRIMARY "TOP"
+LAYOUT SYSTEM OASIS
+DRC RESULTS DATABASE "./$result" OASIS
+DRC MAXIMUM VERTEX ALL
+DRC MAXIMUM RESULTS ALL
+LAYER RES $gdsRes
+
+#set( $producedLightCDLayer = $lightCD * 100)
+#foreach ($i in [1..100])
+#set( $layerId = $producedLightCDLayer + $i )
+LAYER MAP $lightCD DATATYPE $i $layerId
+#set( $nameLightCD = "lightFieldCD" + $i )
+LAYER $nameLightCD $layerId
+DRC CHECK MAP $nameLightCD $layerId
+$nameLightCD { $nameLightCD AND RES }
+#end
+
+#set( $producedDarkCDLayer = $darkCD * 100)
+#foreach ($i in [1..100])
+#set( $layerId = $producedDarkCDLayer + $i )
+LAYER MAP $darkCD DATATYPE $i $layerId
+#set( $namedarkCD = "darkFieldCD" + $i )
+LAYER $namedarkCD $layerId
+DRC CHECK MAP $namedarkCD $layerId
+$namedarkCD { $namedarkCD NOT RES }
+#end
+
+#set( $producedLightMLTLayer = $lightMLT * 100)
+#foreach ($i in [1..100])
+#set( $layerId = $producedLightMLTLayer + $i )
+LAYER MAP $lightMLT DATATYPE $i $layerId
+#set( $nameLightMLT = "lightFieldMLT" + $i )
+LAYER $nameLightMLT $layerId
+DRC CHECK MAP $nameLightMLT $layerId
+$nameLightMLT { $nameLightMLT AND RES }
+#end
+
+#set( $producedDarkMLTLayer = $darkMLT * 100)
+#foreach ($i in [1..100])
+#set( $layerId = $producedDarkMLTLayer + $i )
+LAYER MAP $darkMLT DATATYPE $i $layerId
+#set( $namedarkMLT = "darkFieldMLT" + $i )
+LAYER $namedarkMLT $layerId
+DRC CHECK MAP $namedarkMLT $layerId
+$namedarkMLT { $namedarkMLT NOT RES }
+#end

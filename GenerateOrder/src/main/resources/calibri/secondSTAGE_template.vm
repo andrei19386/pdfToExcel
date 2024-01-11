@@ -1,0 +1,35 @@
+LAYOUT PATH "./$fileName.oas"
+LAYOUT PRIMARY "TOP"
+LAYOUT SYSTEM OASIS
+DRC RESULTS DATABASE "./$result" OASIS
+DRC MAXIMUM VERTEX ALL
+DRC MAXIMUM RESULTS ALL
+
+#foreach ($i in [1..100]) 
+#set( $producedLightCD = $lightCD * 100 + $i)
+#set( $lightCDName = "lightCD" + $i)
+#set( $producedDarkCD = $darkCD * 100 + $i)
+#set( $darkCDName = "darkCD" + $i)
+#set( $producedLightMLT = $lightMLT * 100 + $i)
+#set( $lightMLTName = "lightMLT" + $i)
+#set( $producedDarkMLT = $darkMLT * 100 + $i)
+#set( $darkMLTName = "darkMLT" + $i)
+
+LAYER $lightCDName $producedLightCD
+DRC PRINT AREA $lightCDName
+DRC PRINT EXTENT $lightCDName
+$lightCDName {COPY $lightCDName }
+LAYER $darkCDName $producedDarkCD
+DRC PRINT AREA $darkCDName
+DRC PRINT EXTENT $darkCDName
+$darkCDName {COPY $darkCDName }
+LAYER $lightMLTName $producedLightMLT
+DRC PRINT AREA $lightMLTName
+DRC PRINT EXTENT $lightMLTName
+$lightMLTName {COPY $lightMLTName }
+LAYER $darkMLTName $producedDarkMLT
+DRC PRINT AREA $darkMLTName
+DRC PRINT EXTENT $darkMLTName
+$darkMLTName {COPY $darkMLTName }
+
+#end

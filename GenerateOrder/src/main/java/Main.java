@@ -1,3 +1,7 @@
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+
 import java.io.*;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -19,8 +23,86 @@ public class Main {
     private static List<Element> elements = new ArrayList<>();
 
 
+    public  static String command;
 
-    public static void main(String[] args) throws IOException {
+    public  static String extension;
+
+    public  static String execExtension;
+
+    public  static String folder;
+
+    public  static String delCommand;
+
+    public  static String extentTemplate;
+
+    public static String prefix;
+
+    public static boolean isWrittingToOutStrim;
+
+    public static final String OUT_DIR = "scripts" + System.getProperty("file.separator");
+    public static final int DIGITS_GDS = 2;
+
+    private static void initialize() {
+        if(ProjectInfo.getProgramType()==null){
+            command = "klayout -b -r";
+            extension = ".lydrc";
+            execExtension = ".sh";
+            folder = "klayout_linux";
+            extentTemplate = "bbox= ";
+            prefix="";
+            delCommand = "rm";
+            isWrittingToOutStrim = false;
+            return;
+        }
+        switch (ProjectInfo.getProgramType()) {
+            case "calibri": {
+                command = "calibre -drc";
+                extension = ".svrf";
+                execExtension = ".sh";
+                folder = "calibri";
+                extentTemplate = "DRC PRINT EXTENT trimBoundary = ";
+                prefix="";
+                delCommand = "rm";
+                isWrittingToOutStrim = true;
+                break;
+            }
+            case "klayout_windows": {
+                command = "\"c:\\Users\\glushko_aa\\AppData\\Roaming\\KLayout (64bit)\\kLayout_app.exe\" -b -r";
+                extension = ".lydrc";
+                execExtension = ".bat";
+                folder = "klayout_windows";
+                extentTemplate = "bbox= ";
+                prefix=System.getProperty("user.dir")+"\\"+ OUT_DIR;
+                prefix = prefix.replaceAll("\\\\","\\\\\\\\");
+                isWrittingToOutStrim = false;
+                delCommand = "cmd /c del";
+                break;
+            }
+            case "klayout_linux": {
+                command = "klayout -b -r";
+                extension = ".lydrc";
+                execExtension = ".sh";
+                folder = "klayout_linux";
+                extentTemplate = "bbox= ";
+                prefix="";
+                delCommand = "rm";
+                isWrittingToOutStrim = false;
+                break;
+
+            }
+            default: {
+                command = "";
+                extension = "";
+                folder = "";
+                extentTemplate = "";
+                prefix="";
+                isWrittingToOutStrim = false;
+            }
+
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
         if(args.length > 0 && args[0].equals("1")){
             optionFirst();
         }
@@ -35,29 +117,39 @@ public class Main {
         }
     }
 
-    private static void generateExecutionScript() throws IOException {
+
+    private static Template getTemplateScript(String templateFile) throws Exception {
+        VelocityEngine velocityEngine = getVelocityEngine();
+        Template template = velocityEngine.getTemplate(templateFile, "utf-8");
+        return template;
+    }
+
+
+    private static VelocityEngine getVelocityEngine() throws Exception {
+        VelocityEngine velocityEngine = new VelocityEngine();
+        velocityEngine.setProperty("resource.loaders","file");
+        velocityEngine.setProperty("resource.loader.file.path","./" );
+        velocityEngine.setProperty("resource.loader","class");
+        velocityEngine.setProperty("class.resource.loader.class","org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+        velocityEngine.init();
+        return velocityEngine;
+    }
+    private static void generateExecutionScript() throws Exception {
         readProperties();
         File file = new File("script_exec.sh");
+
+        Template template = getTemplateScript(folder +  System.getProperty("file.separator")
+                + "template_script_exec.vm");
+        VelocityContext velocityContext = new VelocityContext();
+
+        velocityContext.put("version", ProjectInfo.getVersion());
+        velocityContext.put("project",ProjectInfo.getProjectName());
+        velocityContext.put("numberOfMasks",ProjectInfo.getNumberOfMasks());
+
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
-        bufferedWriter.write("echo \"$(date): started\" >> log.txt &&\n");
-        bufferedWriter.write("java -jar GenerateOrder-1.1-SNAPSHOT.jar 1 &&\n");
-        bufferedWriter.write("echo \"$(date): first stage script generated\" >> log.txt &&\n");
-        for(int i = 1; i <= ProjectInfo.getNumberOfMasks();i++) {
-            bufferedWriter.write("calibre -drc " + ProjectInfo.getProjectName()+"_firstSTAGE"+i+".SVRF &&\n");
-            bufferedWriter.write(String.format( "echo \"$(date): first stage for mask %d done\" >> log.txt &&\n",
-                    i));
-        }
-        bufferedWriter.write("java -jar GenerateOrder-1.1-SNAPSHOT.jar 2 &&\n");
-        bufferedWriter.write("echo \"$(date): second stage script generated\" >> log.txt &&\n");
-        for(int i = 1; i <= ProjectInfo.getNumberOfMasks();i++) {
-            bufferedWriter.write("calibre -drc " + ProjectInfo.getProjectName()+"_secondSTAGE"+i+".SVRF >" +
-                    "log_calibri_" + i + "&&\n");
-            bufferedWriter.write(String.format( "echo \"$(date): second stage for mask %d done\" >> log.txt &&\n",
-                    i));
-        }
-        bufferedWriter.write("java -jar GenerateOrder-1.1-SNAPSHOT.jar 3 &&\n");
-        bufferedWriter.write("echo \"$(date): third stage script generated\" >> log.txt\n");
+        template.merge(velocityContext, bufferedWriter);
+
         bufferedWriter.flush();
         bufferedWriter.close();
         file.setExecutable(true,false);
@@ -236,7 +328,7 @@ public class Main {
         return null;
     }
 
-    private static void optionSecond() {//Генерация файла с координатами прямоугольников
+    private static void optionSecond() throws Exception {//Генерация файла с координатами прямоугольников
         readProperties();
         for(int i = 1; i <= ProjectInfo.getNumberOfMasks();i++){
             try {
@@ -247,34 +339,26 @@ public class Main {
         }
     }
 
-    private static void generateSecondStageSVRF(int i) throws IOException {
+    private static void generateSecondStageSVRF(int i) throws Exception {
         File file = new File(ProjectInfo.getProjectName()+"_secondSTAGE"+i+".SVRF");
+
+
+        Template template = getTemplateScript(folder +  System.getProperty("file.separator")
+                + "secondSTAGE_template.vm");
+        VelocityContext velocityContext = new VelocityContext();
+
+        velocityContext.put("fileName", ProjectInfo.getProjectName()+"_firstSTAGE"+i+".oas");
+        velocityContext.put("result",ProjectInfo.getProjectName() + "_secondSTAGE"+ i + ".oas");
+        velocityContext.put("lightCD",ProjectInfo.getLightFieldCD());
+        velocityContext.put("darkCD",ProjectInfo.getDarkFieldCD());
+        velocityContext.put("lightMLT",ProjectInfo.getLightFieldMLT());
+        velocityContext.put("darkMLT",ProjectInfo.getDarkFieldMLT());
+        velocityContext.put("log",ProjectInfo.getProjectName()+"_log_"+i+".txt");
+
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
-        bufferedWriter.write(String.format(
-                PATH, ProjectInfo.getProjectName()+"_firstSTAGE"+i+".oas"));
-        bufferedWriter.write(String.format(
-                PRIMARY, "TOP"));
-        bufferedWriter.write(OASIS);
-        bufferedWriter.write(String.format(
-                RESULTS_DRC, ProjectInfo.getProjectName() + "_secondSTAGE"+ i + ".oas"));
-        bufferedWriter.write(MAX_VERTEX);
-        bufferedWriter.write(MAX_RESULTS);
+        template.merge(velocityContext, bufferedWriter);
 
-        for(int j = 1; j <= 100; j++){
-            String featureName = "lightCD"+j;
-            int featureGDSNumber = ProjectInfo.getLightFieldCD()*100+j;
-            elementaryPrint(bufferedWriter, featureName, featureGDSNumber);
-            featureName = "darkCD" + j;
-            featureGDSNumber = ProjectInfo.getDarkFieldCD()*100+j;
-            elementaryPrint(bufferedWriter,featureName,featureGDSNumber);
-            featureName = "lightMLT" + j;
-            featureGDSNumber = ProjectInfo.getLightFieldMLT()*100+j;
-            elementaryPrint(bufferedWriter,featureName,featureGDSNumber);
-            featureName = "darkMLT" + j;
-            featureGDSNumber = ProjectInfo.getDarkFieldMLT()*100+j;
-            elementaryPrint(bufferedWriter,featureName,featureGDSNumber);
-        }
         bufferedWriter.flush();
         bufferedWriter.close();
     }
@@ -290,7 +374,7 @@ public class Main {
     }
 
 
-    private static void optionFirst() {//Генерация файла со слоями-прямоугольниками
+    private static void optionFirst() throws Exception {//Генерация файла со слоями-прямоугольниками
         readProperties();
         for(int i = 1; i <= ProjectInfo.getNumberOfMasks();i++){
             try {
@@ -301,31 +385,26 @@ public class Main {
         }
     }
 
-    private static void generateFirstStageSVRF(int i) throws IOException {
+    private static void generateFirstStageSVRF(int i) throws Exception {
 
         File file = new File(ProjectInfo.getProjectName()+"_firstSTAGE"+i+".SVRF");
+        Template template = getTemplateScript(folder +  System.getProperty("file.separator")
+                + "firstSTAGE_template.vm");
+        VelocityContext velocityContext = new VelocityContext();
+
+        velocityContext.put("fileName", ProjectInfo.getProjectName()+"_MASK"+i+".oas");
+        velocityContext.put("primary", ProjectInfo.getProjectName()+"_MASK" + i);
+        velocityContext.put("result",ProjectInfo.getProjectName() + "_firstSTAGE"+ i + ".oas");
+        velocityContext.put("gdsRes",ProjectInfo.getLayerOut());
+        velocityContext.put("lightCD",ProjectInfo.getLightFieldCD());
+        velocityContext.put("darkCD",ProjectInfo.getDarkFieldCD());
+        velocityContext.put("lightMLT",ProjectInfo.getLightFieldMLT());
+        velocityContext.put("darkMLT",ProjectInfo.getDarkFieldMLT());
+
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
-        bufferedWriter.write(String.format(
-                PATH, ProjectInfo.getProjectName()+"_MASK"+i+".oas"));
-        bufferedWriter.write(String.format(RENAME_CELL,
-                ProjectInfo.getProjectName()+"_MASK" + i, "TOP"));
-        bufferedWriter.write(String.format(
-                PRIMARY, "TOP"));
-        bufferedWriter.write(OASIS);
-        bufferedWriter.write(String.format(
-                RESULTS_DRC, ProjectInfo.getProjectName() + "_firstSTAGE"+ i + ".oas"));
-        bufferedWriter.write(MAX_VERTEX);
-        bufferedWriter.write(MAX_RESULTS);
-        bufferedWriter.write(String.format(LAYER,"RES",ProjectInfo.getLayerOut()));
-        rulesGenerate(bufferedWriter, ProjectInfo.getLightFieldCD(),
-                "lightFieldCD","%s%d { %s%d AND RES }\n");
-        rulesGenerate(bufferedWriter, ProjectInfo.getDarkFieldCD(),
-                "darkFieldCD","%s%d { %s%d NOT RES }\n");
-        rulesGenerate(bufferedWriter, ProjectInfo.getLightFieldMLT(),
-                "lightFieldMLT","%s%d { %s%d AND RES }\n");
-        rulesGenerate(bufferedWriter, ProjectInfo.getDarkFieldMLT(),
-                "darkFieldMLT","%s%d { %s%d NOT RES }\n");
+        template.merge(velocityContext, bufferedWriter);
+
         bufferedWriter.flush();
         bufferedWriter.close();
     }
@@ -355,6 +434,7 @@ public class Main {
             reader.close();
             fr.close();
             initializeDefault();
+            initialize();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -387,6 +467,12 @@ public class Main {
         if(line.contains("darkFieldMLT=")){
             ProjectInfo.setDarkFieldMLT(Integer.parseInt(line.replaceAll("darkFieldMLT=","")));
         }
+        if(line.contains("version=")){
+            ProjectInfo.setVersion(line.replaceAll("version=",""));
+        }
+
+        if(line.contains("programType=")){ProjectInfo.setProgramType(line
+                .replaceAll("programType=",""));}
     }
 
     private static void initializeDefault() {

@@ -2,6 +2,7 @@ public class ProjectInfo {
     private static String projectName;
     private static int numberOfMasks;
 
+    private static String version;
     private static int layerOut;
 
     private static String orderType;
@@ -13,6 +14,24 @@ public class ProjectInfo {
     private static int lightFieldMLT;
 
     private static int darkFieldMLT;
+
+    private static String programType;
+
+    public static String getVersion() {
+        return version;
+    }
+
+    public static void setVersion(String version) {
+        ProjectInfo.version = version;
+    }
+
+    public static String getProgramType() {
+        return programType;
+    }
+
+    public static void setProgramType(String programType) {
+        ProjectInfo.programType = programType;
+    }
 
     public static String getProjectName() {
         return projectName;
