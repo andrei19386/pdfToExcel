@@ -10,7 +10,7 @@ echo "$(date): first stage for mask $i done" >> log.txt &&
 java -jar $programName 2 &&
 echo "$(date): second stage script generated" >> log.txt &&
 #foreach ($i in [1..$numberOfMasks])
-#set( $stroka = $project + "_secondSTAGE" + $i + ".svrf > log_mask_" + $i + " &&")
+#set( $stroka = $project + "_secondSTAGE" + $i + ".svrf > " + $project + "_log_" + $i + ".txt &&")
 calibre -drc $stroka
 echo "$(date): second stage for mask $i done" >> log.txt &&
 #end
