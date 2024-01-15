@@ -131,7 +131,9 @@ public class Main {
     }
     private static void generateExecutionScript() throws Exception {
         readProperties();
-        File file = new File("script_exec.sh");
+        File file = new File("script_exec" + execExtension);
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
+        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
 
         Template template = getTemplateScript(folder +  System.getProperty("file.separator")
                 + "template_script_exec.vm");
@@ -142,8 +144,7 @@ public class Main {
         velocityContext.put("numberOfMasks",ProjectInfo.getNumberOfMasks());
         velocityContext.put("command",command);
 
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
-        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
+
         template.merge(velocityContext, bufferedWriter);
 
         bufferedWriter.flush();
