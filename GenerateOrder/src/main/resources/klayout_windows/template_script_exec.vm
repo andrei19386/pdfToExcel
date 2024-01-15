@@ -1,18 +1,18 @@
 #set( $programName = "GenerateOrder-" + $version + "-SNAPSHOT.jar")
-echo "$(date): started" >> log.txt &&
+echo "%date% %time%: started" >> log.txt &&
 java -jar $programName 1 &&
-echo "$(date): first stage script generated" >> log.txt &&
+echo "%date% %time%: first stage script generated" >> log.txt &&
 #foreach ($i in [1..$numberOfMasks])
 #set( $stroka = $project + "_firstSTAGE" + $i + ".svrf &&")
-klayout -b -r $stroka
-echo "$(date): first stage for mask $i done" >> log.txt &&
+$command $stroka
+echo "%date% %time%: first stage for mask $i done" >> log.txt &&
 #end
 java -jar $programName 2 &&
-echo "$(date): second stage script generated" >> log.txt &&
+echo "%date% %time%: second stage script generated" >> log.txt &&
 #foreach ($i in [1..$numberOfMasks])
 #set( $stroka = $project + "_secondSTAGE" + $i + ".svrf > log_mask_" + $i + " &&")
-klayout -b -r $stroka
-echo "$(date): second stage for mask $i done" >> log.txt &&
+$command $stroka
+echo "%date% %time%: second stage for mask $i done" >> log.txt &&
 #end
 java -jar $programName 3 &&
-echo "$(date): third stage script generated" >> log.txt
+echo "%date% %time%: third stage script generated" >> log.txt

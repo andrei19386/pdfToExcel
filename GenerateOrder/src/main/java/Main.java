@@ -34,7 +34,7 @@ public class Main {
 
     public static boolean isWrittingToOutStrim;
 
-    public static final String OUT_DIR = "scripts" + System.getProperty("file.separator");
+    public static final String OUT_DIR = "";
     public static final int DIGITS_GDS = 2;
 
     private static void initialize() {
@@ -140,6 +140,7 @@ public class Main {
         velocityContext.put("version", ProjectInfo.getVersion());
         velocityContext.put("project",ProjectInfo.getProjectName());
         velocityContext.put("numberOfMasks",ProjectInfo.getNumberOfMasks());
+        velocityContext.put("command",command);
 
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
@@ -392,13 +393,13 @@ public class Main {
                 + "secondSTAGE_template.vm");
         VelocityContext velocityContext = new VelocityContext();
 
-        velocityContext.put("fileName", ProjectInfo.getProjectName()+"_firstSTAGE"+i+".oas");
-        velocityContext.put("result",ProjectInfo.getProjectName() + "_secondSTAGE"+ i + ".oas");
+        velocityContext.put("fileName", prefix + ProjectInfo.getProjectName()+"_firstSTAGE"+i+".oas");
+        velocityContext.put("result",prefix + ProjectInfo.getProjectName() + "_secondSTAGE"+ i + ".oas");
         velocityContext.put("lightCD",ProjectInfo.getLightFieldCD());
         velocityContext.put("darkCD",ProjectInfo.getDarkFieldCD());
         velocityContext.put("lightMLT",ProjectInfo.getLightFieldMLT());
         velocityContext.put("darkMLT",ProjectInfo.getDarkFieldMLT());
-        velocityContext.put("log",ProjectInfo.getProjectName()+"_log_"+i+".txt");
+        velocityContext.put("log",prefix + ProjectInfo.getProjectName()+"_log_"+i+".txt");
 
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
@@ -437,9 +438,9 @@ public class Main {
                 + "firstSTAGE_template.vm");
         VelocityContext velocityContext = new VelocityContext();
 
-        velocityContext.put("fileName", ProjectInfo.getProjectName()+"_MASK"+i+".oas");
+        velocityContext.put("fileName", prefix + ProjectInfo.getProjectName()+"_MASK"+i+".oas");
         velocityContext.put("primary", ProjectInfo.getProjectName()+"_MASK" + i);
-        velocityContext.put("result",ProjectInfo.getProjectName() + "_firstSTAGE"+ i + ".oas");
+        velocityContext.put("result", prefix + ProjectInfo.getProjectName() + "_firstSTAGE"+ i + ".oas");
         velocityContext.put("gdsRes",ProjectInfo.getLayerOut());
         velocityContext.put("lightCD",ProjectInfo.getLightFieldCD());
         velocityContext.put("darkCD",ProjectInfo.getDarkFieldCD());
