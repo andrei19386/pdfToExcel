@@ -1,3 +1,5 @@
+package main;
+
 import main.Element;
 import main.ProjectInfo;
 import org.apache.velocity.Template;
