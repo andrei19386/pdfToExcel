@@ -1,0 +1,18 @@
+#set( $programName = "GenerateOrder-" + $version + "-SNAPSHOT.jar")
+echo "%date% %time%: started" >> log.txt &&
+java -jar $programName 1 &&
+echo "%date% %time%: first stage script generated" >> log.txt &&
+#foreach ($i in [1..$numberOfMasks])
+#set( $stroka = $project + "_firstSTAGE" + $i + ".svrf &&")
+$command $stroka
+echo "%date% %time%: first stage for mask $i done" >> log.txt &&
+#end
+java -jar $programName 2 &&
+echo "%date% %time%: second stage script generated" >> log.txt &&
+#foreach ($i in [1..$numberOfMasks])
+#set( $stroka = $project + "_secondSTAGE" + $i + ".svrf > log_mask_" + $i + " &&")
+$command $stroka
+echo "%date% %time%: second stage for mask $i done" >> log.txt &&
+#end
+java -jar $programName 3 &&
+echo "%date% %time%: third stage script generated" >> log.txt
