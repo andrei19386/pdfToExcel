@@ -1,3 +1,5 @@
+package main;
+
 public class Element {
     private String name;
     private String type;

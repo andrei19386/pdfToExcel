@@ -1,3 +1,5 @@
+import main.Element;
+import main.ProjectInfo;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;

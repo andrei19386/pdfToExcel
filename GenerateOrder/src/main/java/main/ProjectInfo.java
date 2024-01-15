@@ -1,3 +1,5 @@
+package main;
+
 public class ProjectInfo {
     private static String projectName;
     private static int numberOfMasks;
