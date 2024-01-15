@@ -127,7 +127,7 @@ public class Main {
     private static VelocityEngine getVelocityEngine() throws Exception {
         VelocityEngine velocityEngine = new VelocityEngine();
         velocityEngine.setProperty("resource.loaders","file");
-        velocityEngine.setProperty("resource.loader.file.path","./" );
+        velocityEngine.setProperty("resource.loader.file.path","." );
         velocityEngine.setProperty("resource.loader","class");
         velocityEngine.setProperty("class.resource.loader.class","org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
         velocityEngine.init();
