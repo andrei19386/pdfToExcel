@@ -1,12 +1,11 @@
 package main;
 
-import main.Element;
-import main.ProjectInfo;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 import java.io.*;
+import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -119,7 +118,6 @@ public class Main {
 
     private static Template getTemplateScript(String templateFile) throws Exception {
         VelocityEngine velocityEngine = getVelocityEngine();
-        System.out.println(velocityEngine.getProperty("resource.loader.file.path"));
         Template template = velocityEngine.getTemplate(templateFile, "utf-8");
         return template;
     }
@@ -131,7 +129,6 @@ public class Main {
         velocityEngine.setProperty("resource.loader.file.path","." );
         velocityEngine.setProperty("resource.loader","class");
         velocityEngine.setProperty("class.resource.loader.class","org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-        velocityEngine.setProperty("file.resource.loader.path", "classpath");
         velocityEngine.init();
         return velocityEngine;
     }
