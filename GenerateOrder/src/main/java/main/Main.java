@@ -5,7 +5,6 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 import java.io.*;
-import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -138,8 +137,7 @@ public class Main {
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(fileOutputStream));
 
-        Template template = getTemplateScript(folder +  System.getProperty("file.separator")
-                + "template_script_exec.vm");
+        Template template = getTemplateScript(folder +  "/template_script_exec.vm");
         VelocityContext velocityContext = new VelocityContext();
 
         velocityContext.put("version", ProjectInfo.getVersion());
@@ -393,8 +391,7 @@ public class Main {
         File file = new File(ProjectInfo.getProjectName()+"_secondSTAGE"+i+extension);
 
 
-        Template template = getTemplateScript(folder +  System.getProperty("file.separator")
-                + "secondSTAGE_template.vm");
+        Template template = getTemplateScript(folder +  "/secondSTAGE_template.vm");
         VelocityContext velocityContext = new VelocityContext();
 
         velocityContext.put("fileName", prefix + ProjectInfo.getProjectName()+"_firstSTAGE"+i+".oas");
@@ -438,8 +435,7 @@ public class Main {
     private static void generateFirstStageSVRF(int i) throws Exception {
 
         File file = new File(ProjectInfo.getProjectName()+"_firstSTAGE" + i + extension);
-        Template template = getTemplateScript(folder +  System.getProperty("file.separator")
-                + "firstSTAGE_template.vm");
+        Template template = getTemplateScript(folder +  "/firstSTAGE_template.vm");
         VelocityContext velocityContext = new VelocityContext();
 
         velocityContext.put("fileName", prefix + ProjectInfo.getProjectName()+"_MASK"+i+".oas");
