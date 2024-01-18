@@ -16,6 +16,8 @@
  <dsl-interpreter-name>drc-dsl-xml</dsl-interpreter-name>
  <text>inp = layout("$fileName","$primary")
 target("$result","TOP")
+verbose(true)
+
 res = inp.input($gdsRes,0)
 
 #foreach ($i in [1..100])
